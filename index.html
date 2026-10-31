@@ -2449,7 +2449,7 @@
 <!-- HEADER PROFIL -->
 <div id="insta-header-profile" class="insta-header-bar">
   <span class="insta-username-header">
-    ohyul_kwon
+    alexis_samuel
     <svg class="ig-icon"><use href="#ig-chevron"/></svg>
   </span>
   <div class="insta-header-icons">
@@ -2617,7 +2617,7 @@
                   </div>
 
                   <div class="insta-bio-block">
-                    <span class="insta-fullname">Kwon Ohyul</span>
+                    <span class="insta-fullname">alexis_samuel</span>
                     <span class="insta-bio-text">@Aeternus.band · Lead Vocal · sometimes model<br>Do it scared<br>"What is grief, if not love persevering."</span>
                   </div>
 
@@ -2941,61 +2941,43 @@ function closeInstaPostView() {
     let audioCtx = null;
 
     function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    }
+      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+  if (!audioCtx || audioCtx.state === 'closed') {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state !== 'running') audioCtx.resume();
+}
+['touchstart', 'touchend', 'click'].forEach(ev =>
+  document.addEventListener(ev, initAudio, true));
 
-    function playKeySound() {
-      if (!audioCtx) return;
-      const now = audioCtx.currentTime;
-      const bufferSize = audioCtx.sampleRate * 0.012;
-      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const output = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-      const noise = audioCtx.createBufferSource();
-      noise.buffer = buffer;
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(2200 + Math.random() * 600, now);
-      filter.Q.setValueAtTime(3.5, now);
-      const gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
-      noise.connect(filter);
-      filter.connect(gain);
-      gain.connect(audioCtx.destination);
-      noise.start(now);
-    }
 
-    function playNotificationChime() {
-      if (!audioCtx) return;
-      const now = audioCtx.currentTime;
-      const osc1 = audioCtx.createOscillator();
-      const osc2 = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc1.type = 'sine';
-      osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(1046.5, now);
-      osc2.frequency.setValueAtTime(1318.5, now + 0.08);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-      osc1.connect(gain);
-      osc2.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc1.start(now);
-      osc1.stop(now + 0.15);
-      osc2.start(now + 0.08);
-      osc2.stop(now + 0.4);
-    }
+    const SR = 22050;
+function wavURL(gen, dur) {
+  const n = Math.floor(SR * dur), buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, SR, true); v.setUint32(28, SR * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    const s = Math.max(-1, Math.min(1, gen(i / SR)));
+    v.setInt16(44 + i * 2, s * 32767, true);
+  }
+  return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+}
+const KEY_URL = wavURL(t => (Math.random() * 2 - 1) * 0.25 * Math.exp(-t * 300), 0.02);
+const CHIME_URL = wavURL(t => 0.3 * Math.exp(-t * 8) *
+  (Math.sin(2 * Math.PI * 1046.5 * t) +
+   (t > 0.08 ? Math.sin(2 * Math.PI * 1318.5 * (t - 0.08)) : 0)), 0.5);
 
-    document.addEventListener('touchstart', initAudio, { once: true });
-    document.addEventListener('click', initAudio, { once: true });
+function playKeySound() { const a = new Audio(KEY_URL); a.volume = 0.5; a.play().catch(() => {}); }
+function playNotificationChime() { const a = new Audio(CHIME_URL); a.play().catch(() => {}); }
+
+
+    document.addEventListener('touchstart', initAudio);
+document.addEventListener('click', initAudio);
+
 
     /* ==========================================================================
        SECTION 11: EVIDENCE GALLERY DATA & EXPLICIT BRANCH BADGES
@@ -3560,6 +3542,7 @@ function closeInstaPostView() {
     }
 
     function endCall() {
+      initAudio();
       if (callTimerInterval) clearInterval(callTimerInterval);
       if (audioPlayer) {
         audioPlayer.pause();
@@ -3703,6 +3686,9 @@ function closeInstaPostView() {
   </script>
   <script>
 const SOUND_URL = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+    const RINGTONE_URL   = "https://files.catbox.moe/27hae9.mp3";
+const CH1_CALL_AUDIO = "https://files.catbox.moe/06ha0p.wav";
+
 const OHYUL_IMG = "https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg";
 const RYUL_IMG  = "https://i.ibb.co.com/VW81fc6c/ccf88a8847693b2fc3a7f991da10f2b5.jpg";
 const acil_IMG = "https://i.ibb.co.com/Jw4hjzKX/f58b335901f02a087db7a414ae57083f.jpg";
@@ -3794,7 +3780,7 @@ const CHAPTER_SIM_DATA = {
     { sender: 'other', text: "masuk?" },
     { sender: 'me',    text: "..." },
     { sender: 'me',    text: "siapa ya?" },
-    { type: 'call', name: 'Unknown Number', avatar: 'UN', audio: SOUND_URL, duration: 20,
+    { type: 'call', name: 'Unknown Number', avatar: 'UN', audio: CH1_CALL_AUDIO, duration: 20,
       onAccept:  [{ sender: 'other', text: "denger suara gua ga?" }],
       onDecline: [{ sender: 'other', text: "please, lex. angkat dulu boleh?" }] },
     { sender: 'me',    text: "uhm, ngga" },
@@ -4207,8 +4193,25 @@ function createMessageSim(mount, cfg) {
       });
     });
   }
-  function startRing() { stopRing(); ringBurst(); ringInt = setInterval(ringBurst, 2500); }
-  function stopRing() { clearInterval(ringInt); ringInt = null; }
+  let ringAudio = null;
+function startRing() {
+  stopRing();
+  if (RINGTONE_URL) {
+    ringAudio = new Audio(RINGTONE_URL);
+    ringAudio.loop = true;
+    ringAudio.play().catch(() => {});
+  } else {
+    ringBurst();
+    ringInt = setInterval(ringBurst, 2500);
+  }
+}
+function stopRing() {
+  initAudio();
+  clearInterval(ringInt); ringInt = null;
+  if (ringAudio) { ringAudio.pause(); ringAudio = null; }
+}
+
+
 
   function showCall(it) {
     call = it; const r = rooms[cur];
@@ -4243,6 +4246,7 @@ function createMessageSim(mount, cfg) {
     }
   };
   function endCall() {
+    initAudio();
     clearInterval(callInt); audio.pause(); audio.currentTime = 0;
     finishCall('Call Ended · ' + $('callTimer').textContent, call.onAccept, call.acceptBranch);
   }
