@@ -4285,7 +4285,7 @@ document.querySelectorAll('.sim-mount').forEach(m => {
   };
 
   // Restore on load (URL ?ch=1 overrides saved value)
-  let target = '2';
+  let target = '';
   if (target === null) { try { target = localStorage.getItem(KEY); } catch (e) {} }
   const n = parseInt(target, 10);
 
