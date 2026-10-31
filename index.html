@@ -1,0 +1,4301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LNGSHOT: Secret Logs - CYOA Story Simulator</title>
+  <style>
+  /* #SIM_ENGINE_CSS */
+  .sim-inbox { z-index: 10; }
+  .sim-chat { z-index: 20; transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.5); }
+  .sim-chat.active { transform: translateX(0); }
+  .sender-tag.default { color: #0a84ff; }
+    @import url('https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap');
+
+    #insta-posts-list { position: relative; }
+#insta-posts-list .insta-post-card { flex-shrink: 0; }
+.insta-post-top-title { font-size: 14px; font-weight: 700; }
+.insta-back-btn { display: flex; align-items: center; width: 30px; }
+.insta-back-btn .ig-icon { width: 22px; height: 22px; transform: rotate(90deg); }
+.insta-post-time { padding: 4px 12px 0; font-size: 10px; color: #8e8e93; text-transform: uppercase; }
+    
+</style>
+  <style>
+    /* ==========================================================================
+       SECTION 1: GLOBAL RESET & BASE THEME STYLES
+       SEARCH KEYWORD: #THEME_RESET
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #050507;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-viewport {
+      width: 100%;
+      max-width: 440px;
+      height: 100vh;
+      max-height: 920px;
+      background-color: #0d0d0f;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.95), 0 0 20px rgba(230, 57, 70, 0.2);
+    }
+
+    /* Scrollbars */
+    #landing-page::-webkit-scrollbar,
+    .chapter-page::-webkit-scrollbar,
+    .carousel-track::-webkit-scrollbar,
+    .chat-container::-webkit-scrollbar,
+    .gallery-slider::-webkit-scrollbar,
+    .insta-feed-scroll::-webkit-scrollbar {
+      height: 5px;
+      width: 5px;
+    }
+    #landing-page::-webkit-scrollbar-track,
+    .chapter-page::-webkit-scrollbar-track,
+    .carousel-track::-webkit-scrollbar-track,
+    .chat-container::-webkit-scrollbar-track,
+    .gallery-slider::-webkit-scrollbar-track,
+    .insta-feed-scroll::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    #landing-page::-webkit-scrollbar-thumb,
+    .chapter-page::-webkit-scrollbar-thumb,
+    .carousel-track::-webkit-scrollbar-thumb,
+    .chat-container::-webkit-scrollbar-thumb,
+    .gallery-slider::-webkit-scrollbar-thumb,
+    .insta-feed-scroll::-webkit-scrollbar-thumb {
+      background: #e63946;
+      border-radius: 4px;
+    }
+
+    /* ==========================================================================
+       SECTION 2: PAGE ROUTING & NAVIGATION
+       SEARCH KEYWORD: #ROUTING_NAV
+       ========================================================================== */
+    .page-section {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      background-color: #0d0d0f;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #landing-page {
+      z-index: 50;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #landing-page.hidden-page {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-100%);
+    }
+
+    .chapter-page {
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(100%);
+      padding: 16px 16px 60px 16px;
+    }
+
+    .chapter-page.active-page {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .chapter-page.slide-left-out {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-100%);
+    }
+
+    .top-menu-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 16px;
+      z-index: 120;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-circle-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(18, 18, 22, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(230, 57, 70, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s, border-color 0.2s;
+      color: #e63946;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .nav-circle-btn:active {
+      transform: scale(0.92);
+      border-color: #e63946;
+    }
+
+    .hamburger-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .hamburger-line {
+      width: 18px;
+      height: 2px;
+      background-color: #e63946;
+      border-radius: 2px;
+    }
+
+    /* ==========================================================================
+       SECTION 3: LANDING HERO & EVIDENCE CAROUSEL
+       SEARCH KEYWORD: #LANDING_HERO
+       ========================================================================== */
+    .hero-video-container {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .hero-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(1.2) contrast(1.0);
+    }
+
+    .hero-gradient-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 110%;
+      background: linear-gradient(
+        to bottom,
+        rgba(13, 13, 15, 0.2) 0%,
+        rgba(13, 13, 15, 0.6) 60%,
+        #0d0d0f 100%
+      );
+    }
+
+    .crime-string-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #e63946, transparent);
+      box-shadow: 0 0 8px #e63946;
+    }
+
+    .landing-body {
+      padding: 28px 20px 80px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      z-index: 60;
+      background: linear-gradient(
+        to bottom,
+        rgba(36, 36, 36, 1) 20%,
+        rgba(13, 13, 15, 0.6) 60%,
+        #0d0d0f 100%
+        );
+    }
+
+    .title-block {
+      border-left: 3px solid #e63946;
+      padding-left: 14px;
+      margin-top: -10px;
+    }
+
+    .story-tagline {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e63946;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .story-main-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+
+    .enote-card {
+      background-color: #16161a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .enote-pin {
+      position: absolute;
+      top: -6px;
+      right: 18px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #e63946;
+      box-shadow: 0 0 8px #e63946;
+    }
+
+    .enote-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .enote-text {
+      font-size: 14px;
+      color: #d1d1d6;
+      line-height: 1.6;
+    }
+
+    .enote-closing {
+      font-size: 10px;
+      font-weight: 600;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 16px;
+      margin-bottom: 2px;
+    }
+
+    .carousel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .carousel-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e63946;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .carousel-card {
+      min-width: 140px;
+      width: 140px;
+      height: 175px;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      scroll-snap-align: start;
+      flex-shrink: 0;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .carousel-card:active {
+      transform: scale(0.96);
+    }
+
+    .carousel-card.locked {
+      filter: grayscale(1);
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .carousel-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.85);
+    }
+
+    .carousel-card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 10px 8px;
+      background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .carousel-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #e63946;
+      text-transform: uppercase;
+    }
+
+    .carousel-card-sub {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .branch-badge {
+      font-size: 9px;
+      background: #e63946;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+      width: fit-content;
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e63946 0%, #900c3f 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(230, 57, 70, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .start-btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 5px 15px rgba(230, 57, 70, 0.2);
+    }
+
+    .arrow-under-icon {
+      font-size: 18px;
+      animation: bounceDown 1.5s infinite ease-in-out;
+    }
+
+    @keyframes bounceDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+
+    /* ==========================================================================
+       SECTION 4: CHAPTER LAYOUT & IPHONE PRO DISPLAY FRAMING
+       SEARCH KEYWORD: #IPHONE_BEZEL_FRAME
+       ========================================================================== */
+    .ch-top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      margin-top: 8px;
+    }
+
+    .ch-title-block {
+      border-left: 3px solid #e63946;
+      padding-left: 12px;
+      margin-bottom: 6px;
+    }
+
+    .ch-main-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #e63946;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .ch-sub-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+      letter-spacing: -0.3px;
+    }
+
+    .narrative-card {
+      background-color: #16161a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 14px;
+      color: #d1d1d6;
+      line-height: 1.55;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .iphone-device-outer-frame {
+      width: 100%;
+      max-width: 375px;
+      height: 680px;
+      margin: 0 auto 28px auto;
+      background-color: #121214;
+      border-radius: 46px;
+      border: 10px solid #28282b;
+      outline: 2px solid #3a3a3c;
+      position: relative;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 20px rgba(230, 57, 70, 0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .iphone-dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 24px;
+      background-color: #000;
+      border-radius: 20px;
+      z-index: 400;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 10px;
+    }
+
+    .camera-lens {
+      width: 8px;
+      height: 8px;
+      background-color: #111a2e;
+      border-radius: 50%;
+      border: 1px solid #1c1c1e;
+    }
+
+    /* ==========================================================================
+       SECTION 5: INSTAGRAM SIMULATOR UI ENGINE (CHAPTER 1 INTRO)
+       SEARCH KEYWORD: #INSTAGRAM_SIMULATOR
+       ========================================================================== */
+    .insta-app-wrapper {
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .insta-header-bar {
+      height: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+      background-color: #000;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .insta-username-header {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .insta-header-icons {
+      display: flex;
+      gap: 16px;
+      font-size: 18px;
+    }
+
+    .insta-view-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .insta-tab-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .insta-tab-view.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Instagram Bottom Navigation Bar */
+    .insta-bottom-nav {
+      height: 48px;
+      background-color: #000;
+      border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .insta-nav-tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 100%;
+      cursor: pointer;
+      color: #8e8e93;
+      font-size: 20px;
+    }
+
+    .insta-nav-tab.active {
+      color: #ffffff;
+    }
+
+    .insta-nav-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1.5px solid transparent;
+      overflow: hidden;
+    }
+
+    .insta-nav-tab.active .insta-nav-avatar {
+      border-color: #ffffff;
+    }
+
+    .insta-nav-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Friends Feed (Home Tab) */
+    .insta-feed-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 20px;
+    }
+
+    .insta-post-card {
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .insta-post-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+    }
+
+    .insta-post-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .insta-post-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #2c2c2e;
+    }
+
+    .insta-post-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .insta-post-author {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .insta-post-img-box {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background-color: #121214;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .insta-post-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .insta-post-actions {
+      display: flex;
+      gap: 14px;
+      padding: 8px 12px 4px 12px;
+      font-size: 18px;
+    }
+
+    .insta-post-likes {
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .insta-post-caption {
+      padding: 0 12px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #efefef;
+    }
+
+    .insta-post-caption strong {
+      font-weight: 700;
+      margin-right: 4px;
+    }
+
+    /* Profile Body & Grid */
+    .insta-profile-body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .insta-profile-info {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .insta-stats-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .insta-avatar-large {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      padding: 2px;
+      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      flex-shrink: 0;
+    }
+
+    .insta-avatar-large img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #000;
+    }
+
+    .insta-stat-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .insta-stat-num {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .insta-stat-label {
+      font-size: 12px;
+      color: #a8a8a8;
+    }
+
+    .insta-bio-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .insta-fullname {
+      font-weight: 700;
+    }
+
+    .insta-bio-text {
+      color: #f5f5f5;
+    }
+
+    .insta-action-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .insta-btn {
+      flex: 1;
+      padding: 7px;
+      border-radius: 8px;
+      background-color: #262626;
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .insta-tabs-bar {
+      display: flex;
+      border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .insta-tab-item {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 18px;
+      color: #a8a8a8;
+      cursor: pointer;
+    }
+
+    
+
+    .insta-tab-item.active {
+      color: #fff;
+      border-bottom: 1.5px solid #fff;
+    }
+
+    .insta-feed-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      padding: 2px 0;
+      background-color: #000;
+    }
+
+    .insta-grid-square {
+      aspect-ratio: 1 / 1;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .insta-grid-square img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Lightbox Slide */
+    .insta-post-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .insta-post-modal.active {
+      transform: translateX(0);
+    }
+
+    .insta-post-top-bar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .insta-back-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       SECTION 6: iOS iMESSAGE SIMULATOR UI ENGINE
+       SEARCH KEYWORD: #IMESSAGE_SIMULATOR
+       ========================================================================== */
+    .iphone-sim-container {
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-bar {
+      height: 44px;
+      padding: 12px 18px 0 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      background-color: #1c1c1e;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+    }
+
+    .status-time {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-icon-svg {
+      fill: #fff;
+    }
+
+    .notification-banner {
+      position: absolute;
+      top: 48px;
+      left: 10px;
+      right: 10px;
+      background: rgba(30, 30, 32, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 10px 12px;
+      border: 0.5px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      z-index: 300;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      cursor: pointer;
+      transform: translateY(-130%);
+      opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+
+    .notification-banner.active {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .notif-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0b84fe, #054080);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 11px;
+      color: #fff;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .notif-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+    .notif-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .notif-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .notif-time {
+      font-size: 10px;
+      color: #8e8e93;
+    }
+
+    .notif-text {
+      font-size: 11px;
+      color: #ebebf5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .views-wrapper {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: calc(100% - 44px);
+      overflow: hidden;
+    }
+
+    .screen-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background-color: #000;
+      will-change: transform;
+    }
+
+    #inbox-view {
+      z-index: 10;
+      transform: translateX(0);
+    }
+
+    #chatroom-view {
+      z-index: 20;
+      transform: translateX(100%);
+      box-shadow: -10px 0 25px rgba(0, 0, 0, 0.5);
+    }
+
+    #chatroom-view.active {
+      transform: translateX(0);
+    }
+
+    .screen-view.smooth-transition {
+      transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.2, 1);
+    }
+
+    .inbox-header {
+      padding: 10px 14px 6px 14px;
+      background-color: #000;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .inbox-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .inbox-edit-btn {
+      color: #0a84ff;
+      font-size: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .inbox-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .inbox-search-bar {
+      background-color: #1c1c1e;
+      border-radius: 8px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #8e8e93;
+      font-size: 13px;
+    }
+
+    .inbox-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .inbox-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px 10px 6px;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+    }
+
+    .inbox-item:active {
+      background-color: #1c1c1e;
+    }
+
+    .unread-indicator-slot {
+      width: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .unread-badge {
+      width: 8px;
+      height: 8px;
+      background-color: #0a84ff;
+      border-radius: 50%;
+    }
+
+    .inbox-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #636366, #3a3a3c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      margin-right: 10px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .inbox-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .inbox-group-avatar {
+      background: linear-gradient(135deg, #0b84fe, #054080);
+      font-size: 11px;
+    }
+
+    .inbox-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .inbox-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .inbox-item-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .inbox-item-time {
+      font-size: 11px;
+      color: #8e8e93;
+    }
+
+    .inbox-item-snippet {
+      font-size: 12px;
+      color: #8e8e93;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .inbox-item-snippet.unread {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .header-bar {
+      height: 50px;
+      background-color: #1c1c1e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+      z-index: 99;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      width: 70px;
+      display: flex;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #0a84ff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 13px;
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #636366, #3a3a3c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 1px;
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .contact-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .header-right {
+      width: 70px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .chat-container {
+      flex: 1;
+      padding: 10px 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background-color: #000;
+      scroll-behavior: smooth;
+    }
+
+    .timestamp {
+      text-align: center;
+      font-size: 10px;
+      color: #8e8e93;
+      margin: 4px 0;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .message {
+      max-width: 82%;
+      padding: 8px 12px;
+      font-size: 13.5px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      position: relative;
+    }
+
+    .message.received {
+      align-self: flex-start;
+      background-color: #26252a;
+      color: #fff;
+      border-radius: 16px 16px 16px 4px;
+    }
+
+    .message.sent {
+      align-self: flex-end;
+      background-color: #0b84fe;
+      color: #fff;
+      border-radius: 16px 16px 4px 16px;
+    }
+
+    .sender-tag {
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .sender-tag.ryul { color: #ff375f; }
+    .sender-tag.louis { color: #ffd60a; }
+    .sender-tag.ohyul { color: #30d158; }
+
+    .typing-bubble {
+      align-self: flex-start;
+      background-color: #26252a;
+      padding: 8px 12px;
+      border-radius: 16px 16px 16px 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      background-color: #8e8e93;
+      border-radius: 50%;
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-3px); opacity: 1; }
+    }
+
+    .chat-bar {
+      padding: 6px 8px;
+      background-color: #1c1c1e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .add-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background-color: #2c2c2e;
+      border: none;
+      color: #8e8e93;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      background-color: #000;
+      border: 1px solid #3a3a3c;
+      border-radius: 18px;
+      padding: 3px 6px 3px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 30px;
+    }
+
+    .input-display {
+      font-size: 13px;
+      color: #fff;
+      flex: 1;
+    }
+
+    .placeholder {
+      color: #636366;
+    }
+
+    .send-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background-color: #3a3a3c;
+      border: none;
+      color: #1c1c1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .send-btn.ready {
+      background-color: #0b84fe;
+      color: #fff;
+      animation: glowPulse 1.2s infinite ease-in-out;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .keyboard-container {
+      background-color: #1b1b1d;
+      padding: 4px 2px 10px 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .key {
+      background-color: #424246;
+      color: #fff;
+      border-radius: 4px;
+      height: 30px;
+      flex: 1;
+      max-width: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .key.special {
+      background-color: #2c2c2e;
+      max-width: 36px;
+    }
+
+    .key.space {
+      max-width: 120px;
+      font-size: 10px;
+      color: #8e8e93;
+    }
+
+    .key.return {
+      background-color: #0a84ff;
+      max-width: 50px;
+      font-size: 10px;
+    }
+
+    .key.active-press {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
+
+    .ios-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .ios-action-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 10px 12px 18px 12px;
+      z-index: 201;
+      transition: transform 0.35s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 0.3s ease;
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .ios-action-sheet.hidden,
+    .ios-overlay.hidden {
+      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ios-sheet-group {
+      background-color: rgba(30, 30, 32, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 14px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ios-sheet-header {
+      padding: 8px 12px;
+      text-align: center;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .ios-sheet-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: #8e8e93;
+      text-transform: uppercase;
+    }
+
+    .ios-sheet-btn {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 11px 12px;
+      font-size: 14px;
+      color: #0a84ff;
+      text-align: center;
+      cursor: pointer;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .ios-sheet-btn:last-child {
+      border-bottom: none;
+    }
+
+    .ios-sheet-btn.cancel-btn {
+      font-weight: 600;
+    }
+
+    /* Call Overlay */
+    .call-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #1c2536 0%, #080b12 100%);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 30px 16px 24px 16px;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.05);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    }
+
+    .call-screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .call-top-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .call-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #48484a, #2c2c2e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .call-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .call-caller-name {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .call-status {
+      font-size: 12px;
+      color: #8e8e93;
+    }
+
+    .call-actions-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    .call-btn-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .call-btn-label {
+      font-size: 10px;
+      color: #ebebf5;
+    }
+
+    .call-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .decline-btn {
+      background-color: #ff3b30;
+      color: #fff;
+    }
+
+    .accept-btn {
+      background-color: #30d158;
+      color: #fff;
+      animation: callPulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes callPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .in-call-controls {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .in-call-controls.active {
+      display: flex;
+    }
+
+    .audio-progress-bar {
+      width: 100%;
+      height: 4px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .audio-progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #30d158;
+      transition: width 0.2s linear;
+    }
+
+    .call-grid-menu {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px 16px;
+      width: 100%;
+      max-width: 220px;
+      margin: 2px auto;
+    }
+
+    .call-grid-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .call-grid-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .call-grid-label {
+      font-size: 10px;
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       SECTION 7: EVIDENCE GALLERY & EXPLICIT BRANCH BADGES
+       SEARCH KEYWORD: #GALLERY_MODALS
+       ========================================================================== */
+    .gallery-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      z-index: 600;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      padding: 20px 16px;
+    }
+
+    .gallery-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .gallery-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+    }
+
+    .gallery-modal-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #e63946;
+      letter-spacing: 0.5px;
+    }
+
+    .gallery-close-btn {
+      background: none;
+      border: none;
+      color: #d1d1d6;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .gallery-slider {
+      flex: 1;
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      align-items: center;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .gallery-slide-card {
+      min-width: 260px;
+      width: 260px;
+      height: 400px;
+      border-radius: 16px;
+      background-color: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      scroll-snap-align: center;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .gallery-slide-card img {
+      width: 100%;
+      height: 230px;
+      object-fit: cover;
+      transition: transform 0.2s;
+    }
+
+    .gallery-slide-card:active img {
+      transform: scale(1.02);
+    }
+
+    .expand-hint-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .explicit-branch-tag {
+      display: inline-block;
+      background-color: #e63946;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      width: fit-content;
+    }
+
+    .gallery-slide-info {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gallery-slide-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: #8e8e93;
+      letter-spacing: 1px;
+    }
+
+    .gallery-slide-caption {
+      font-size: 12px;
+      color: #d1d1d6;
+      line-height: 1.4;
+    }
+
+    .fullscreen-image-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      z-index: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 20px;
+    }
+
+    .fullscreen-image-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .fullscreen-img-element {
+      max-width: 100%;
+      max-height: 75vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.9);
+    }
+
+    .fullscreen-caption {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #d1d1d6;
+      text-align: center;
+      line-height: 1.4;
+      max-width: 320px;
+    }
+
+    .fullscreen-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       SECTION 8: SIDEBAR DRAWER & CHECKPOINTS
+       SEARCH KEYWORD: #SIDEBAR_CHECKPOINTS
+       ========================================================================== */
+    .sidebar-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar-drawer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 82%;
+      max-width: 320px;
+      height: 100%;
+      background-color: #121215;
+      border-right: 1px solid rgba(230, 57, 70, 0.3);
+      z-index: 201;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.85);
+    }
+
+    .sidebar-drawer.active {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e63946;
+      letter-spacing: 0.5px;
+    }
+
+    .close-sidebar-btn {
+      background: none;
+      border: none;
+      color: #8e8e93;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .audio-control-card {
+      background-color: #1c1c20;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .audio-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 52px;
+      height: 26px;
+      background-color: #3a3a3c;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+    }
+
+    .toggle-switch.on {
+      background-color: #e63946;
+    }
+
+    .toggle-status-text {
+      font-size: 9px;
+      font-weight: 800;
+      color: #fff;
+      margin-left: auto;
+    }
+
+    .toggle-switch.on .toggle-status-text {
+      margin-left: 0;
+      margin-right: auto;
+    }
+
+    .toggle-handle {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    .toggle-switch.on .toggle-handle {
+      transform: translateX(26px);
+    }
+
+    .checkpoints-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .checkpoints-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .checkpoint-item {
+      background-color: #1a1a1e;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: border-color 0.2s, opacity 0.2s;
+    }
+
+    .checkpoint-item.unlocked {
+      border: 1.5px solid #e63946;
+      background-color: #1e1b22;
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    .checkpoint-item.unlocked .checkpoint-num {
+      color: #e63946;
+      font-weight: 800;
+    }
+
+    .checkpoint-item.unlocked .checkpoint-name {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .checkpoint-item.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .checkpoint-item.locked .checkpoint-num {
+      color: #636366;
+      font-weight: 600;
+    }
+
+    .checkpoint-item.locked .checkpoint-name {
+      color: #8e8e93;
+      font-weight: 500;
+    }
+
+    .checkpoint-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .checkpoint-num {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .checkpoint-name {
+      font-size: 12px;
+    }
+
+    .lock-icon {
+      font-size: 12px;
+      color: #636366;
+    }
+
+    /* hide scrollbars inside the phones only */
+.iphone-device-outer-frame .chat-container,
+.iphone-device-outer-frame .inbox-list,
+.iphone-device-outer-frame .insta-feed-scroll,
+.iphone-device-outer-frame .insta-profile-body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.iphone-device-outer-frame .chat-container::-webkit-scrollbar,
+.iphone-device-outer-frame .inbox-list::-webkit-scrollbar,
+.iphone-device-outer-frame .insta-feed-scroll::-webkit-scrollbar,
+.iphone-device-outer-frame .insta-profile-body::-webkit-scrollbar {
+  display: none;
+}
+
+    .message.has-img { padding: 4px; }
+.msg-img { display: block; width: 100%; max-width: 220px; border-radius: 12px; }
+.message.has-img .sender-tag { padding: 4px 8px 0; }
+    
+    .card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+.card-overlay.active { opacity: 1; pointer-events: auto; }
+.card-big {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  transform: scale(0.92);
+  transition: transform 1.2s ease;
+}
+.card-overlay.active .card-big { transform: scale(1); }
+.card-sub { margin-top: 14px; font-size: 13px; color: #8e8e93; }
+
+    .ig-icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+    .insta-logo {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+    
+.insta-username-header { cursor: pointer; }
+.insta-username-header .ig-icon { width: 14px; height: 14px; stroke-width: 2.4; }
+.insta-header-icons { align-items: center; }
+.insta-header-icons .ig-icon { width: 24px; height: 24px; color: #fff; }
+    
+.insta-post-actions { align-items: center; }
+.insta-post-actions .ig-icon { width: 22px; height: 22px; color: #fff; }
+.insta-tab-item .ig-icon { width: 22px; height: 22px; margin: 0 auto; }
+    
+  </style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ig-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="ig-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="ig-plus" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></symbol>
+  <symbol id="ig-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+  <symbol id="ig-comment" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l2-5.2A8.4 8.4 0 1 1 21 11.5z"/></symbol>
+  <symbol id="ig-send" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></symbol>
+  <symbol id="ig-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></symbol>
+  <symbol id="ig-tagged" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/></symbol>
+      <symbol id="ig-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+  <symbol id="ig-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="ig-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+  <symbol id="ig-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+</svg>
+
+  <div class="app-viewport">
+
+    <!-- SIDEBAR DRAWER -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar-drawer" class="sidebar-drawer">
+      <div class="sidebar-header">
+        <span class="sidebar-title">CASE FILE NAVIGATION</span>
+        <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
+      </div>
+
+      <div class="audio-control-card">
+        <span class="audio-label">Background Audio</span>
+        <div id="audio-toggle-switch" class="toggle-switch on" onclick="toggleAudioBGM()">
+          <span id="toggle-status-text" class="toggle-status-text">ON</span>
+          <div class="toggle-handle"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="checkpoints-section-title">Select Chapter Checkpoint</div>
+        <div class="checkpoints-grid">
+          
+          <div class="checkpoint-item unlocked" onclick="navigateToChapter(1)">
+            <div class="checkpoint-info">
+              <span class="checkpoint-num">CHAPTER 01</span>
+              <span class="checkpoint-name">Profile & Inbox Logs</span>
+            </div>
+          </div>
+
+          <div id="cp-2" class="checkpoint-item locked" onclick="navigateToChapter(2)">
+            <div class="checkpoint-info">
+              <span class="checkpoint-num">CHAPTER 02</span>
+              <span class="checkpoint-name">Voice Call Intervention</span>
+            </div>
+            <span id="cp-2-lock" class="lock-icon">🔒</span>
+          </div>
+
+          <div id="cp-3" class="checkpoint-item locked" onclick="navigateToChapter(3)">
+            <div class="checkpoint-info">
+              <span class="checkpoint-num">CHAPTER 03</span>
+              <span class="checkpoint-name">The Surveillance Room</span>
+            </div>
+            <span id="cp-3-lock" class="lock-icon">🔒</span>
+          </div>
+
+          <div id="cp-4" class="checkpoint-item locked" onclick="navigateToChapter(4)">
+            <div class="checkpoint-info">
+              <span class="checkpoint-num">CHAPTER 04</span>
+              <span class="checkpoint-name">Docks Intercept</span>
+            </div>
+            <span id="cp-4-lock" class="lock-icon">🔒</span>
+          </div>
+
+          <div id="cp-5" class="checkpoint-item locked" onclick="navigateToChapter(5)">
+            <div class="checkpoint-info">
+              <span class="checkpoint-num">CHAPTER 05</span>
+              <span class="checkpoint-name">Cross-Examination</span>
+            </div>
+            <span id="cp-5-lock" class="lock-icon">🔒</span>
+          </div>
+
+          <div id="cp-6" class="checkpoint-item locked" onclick="navigateToChapter(6)">
+            <div class="checkpoint-info">
+              <span class="checkpoint-num">CHAPTER 06</span>
+              <span class="checkpoint-name">Final Verdict</span>
+            </div>
+            <span id="cp-6-lock" class="lock-icon">🔒</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- GALLERY MODAL POPUP -->
+    <div id="gallery-modal" class="gallery-modal-overlay">
+      <div class="gallery-modal-header">
+        <span id="gallery-modal-title" class="gallery-modal-title">EVIDENCE GALLERY</span>
+        <button class="gallery-close-btn" onclick="closeGalleryModal()">✕</button>
+      </div>
+      <div id="gallery-slider" class="gallery-slider"></div>
+    </div>
+
+    <!-- FULLSCREEN IMAGE LIGHTBOX MODAL -->
+    <div id="fullscreen-image-modal" class="fullscreen-image-modal">
+      <button class="fullscreen-close-btn" onclick="closeFullscreenImage()">✕</button>
+      <img id="fullscreen-img" class="fullscreen-img-element" src="" alt="Fullscreen Evidence">
+      <div id="fullscreen-caption" class="fullscreen-caption"></div>
+    </div>
+
+    <!-- MAIN LANDING PAGE -->
+    <div id="landing-page" class="page-section">
+      <div class="top-menu-bar">
+        <button class="nav-circle-btn" onclick="toggleSidebar()">
+          <div class="hamburger-wrapper">
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+          </div>
+        </button>
+      </div>
+
+      <div class="hero-video-container">
+        <video class="hero-video" autoplay loop muted playsinline poster="https://i.ibb.co.com/0ywLGcDg/jiakh.gif">
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-police-car-lights-in-the-dark-42861-large.mp4" type="video/mp4">
+        </video>
+        <div class="hero-gradient-overlay"></div>
+        <div class="crime-string-line"></div>
+      </div>
+
+      <div class="landing-body">
+        <div class="title-block">
+          <div class="story-tagline">Interactive: choose your adventure!</div>
+          <div class="story-main-title">OUROBOROS: OUR time</div>
+        </div>
+
+        <div class="enote-card">
+          <div class="enote-pin"></div>
+          <div class="enote-header">Karminfo.news.id</div>
+          <p class="enote-text">
+            <i>Man slipping through time.</i> <p></p><br> Pagi dini hari telah dipecahkan misteri kasus yang telah menjadi sensasi bagi oknum awam maupun personil resmi badan sains dunia. Sebuah kisah kejam antara relativitas, manusia, dan anomali buronan waktu. <p></p> <br> <i>"Time will always be against us but I trust him to always find his way back to me,"</i> ujar Alexis Samuel, dalam keterangan tertulis, Sabtu (07/09/2054) selaku narasumber yang telah bersinggungan langsung dengan pelaku.
+          <div class="enote-closing">9 Agustus <b>2054</b></div>
+        </div>
+
+        <!-- EVIDENCE CAROUSEL WITH BRANCH INDICATORS -->
+        <div class="carousel-section">
+          <div class="carousel-title">
+            <span>CASE FILE EVIDENCE GALLERIES</span>
+          </div>
+          <div class="carousel-track">
+            
+            <div class="carousel-card" onclick="openGallery('ohyul')">
+              <img src="https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg" alt="File 1">
+              <div class="carousel-card-overlay">
+                <span class="carousel-card-label">GALLERY 01</span>
+                <span class="carousel-card-sub">Kwon Ohyul</span>
+                <div id="badge-branch-status" class="branch-badge">INITIAL LOG</div>
+              </div>
+            </div>
+
+            <div id="gal-card-surveillance" class="carousel-card locked" onclick="openGallery('surveillance')">
+              <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=400&auto=format&fit=crop" alt="File 2">
+              <div class="carousel-card-overlay">
+                <span class="carousel-card-label">GALLERY 02</span>
+                <span id="gal-sub-surveillance" class="carousel-card-sub">🔒 Locked</span>
+              </div>
+            </div>
+
+            <div id="gal-card-encrypted" class="carousel-card locked" onclick="openGallery('encrypted')">
+              <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=400&auto=format&fit=crop" alt="File 3">
+              <div class="carousel-card-overlay">
+                <span class="carousel-card-label">GALLERY 03</span>
+                <span id="gal-sub-encrypted" class="carousel-card-sub">🔒 Locked</span>
+              </div>
+            </div>
+
+            <div id="gal-card-docks" class="carousel-card locked" onclick="openGallery('docks')">
+              <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=400&auto=format&fit=crop" alt="File 4">
+              <div class="carousel-card-overlay">
+                <span class="carousel-card-label">GALLERY 04</span>
+                <span id="gal-sub-docks" class="carousel-card-sub">🔒 Locked</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <button class="start-btn" onclick="openChapter1()">
+          <span>BEGIN INVESTIGATION</span>
+          <span class="arrow-under-icon">↓</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+       CHAPTER 1: PROFILE INTRO & INBOX LOGS (DUAL-BEZEL DISPLAY)
+       SEARCH KEYWORD: #CHAPTER_1_DUAL_BEZEL
+       ========================================================================== -->
+    <div id="chapter-1" class="page-section chapter-page">
+      <div class="ch-top-nav">
+        <button class="nav-circle-btn" onclick="goBackToMainLanding()">←</button>
+        <button class="nav-circle-btn" onclick="toggleSidebar()">☰</button>
+      </div>
+
+      <div class="ch-title-block">
+        <div class="ch-main-title">CHAPTER 1</div>
+      </div>
+      <div class="ch-sub-title">Starting line.</div>
+
+      <div class="narrative-card">
+        Aeternus: Abadi, kekal, tanpa awal dan akhir. <p></p><br><i>Are you everlasting or just my love persevering?</i>
+      </div>
+
+      <!-- IPHONE BEZEL #1: INSTAGRAM APP SIMULATOR WITH BOTTOM TABS & HOME FEED -->
+      <div class="iphone-device-outer-frame">
+        <div class="iphone-dynamic-island">
+          <div class="camera-lens"></div>
+        </div>
+
+        <div class="insta-app-wrapper">
+          <div class="status-bar" style="background: #000; border: none;">
+            <span class="status-time">01:15</span>
+            <div class="status-icons">
+  <svg class="status-icon-svg" width="15" height="10" viewBox="0 0 17 11"><rect x="0" y="8" width="3" height="3" rx="0.5"/><rect x="4.5" y="5.5" width="3" height="5.5" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+  <svg class="status-icon-svg" width="20" height="10" viewBox="0 0 22 11"><rect x="0.5" y="0.5" width="18" height="10" rx="3" fill="none" stroke="#fff" stroke-width="1"/><rect x="2" y="2" width="12" height="7" rx="1.5" fill="#fff"/></svg>
+</div>
+          </div>
+
+          <!-- HEADER HOME -->
+<div id="insta-header-home" class="insta-header-bar" style="display:none;">
+  <span class="insta-logo">Instagram</span>
+  <div class="insta-header-icons">
+    <svg class="ig-icon"><use href="#ig-heart"/></svg>
+    <svg class="ig-icon"><use href="#ig-send"/></svg>
+  </div>
+</div>
+
+<!-- HEADER PROFIL -->
+<div id="insta-header-profile" class="insta-header-bar">
+  <span class="insta-username-header">
+    ohyul_kwon
+    <svg class="ig-icon"><use href="#ig-chevron"/></svg>
+  </span>
+  <div class="insta-header-icons">
+    <svg class="ig-icon"><use href="#ig-plus"/></svg>
+    <svg class="ig-icon"><use href="#ig-menu"/></svg>
+  </div>
+</div>
+
+          <div class="insta-view-container">
+
+            <!-- HOME TAB: FRIENDS ACTIVITY FEED & CHARACTER INTROS -->
+            <div id="insta-tab-home" class="insta-tab-view">
+              <div class="insta-feed-scroll">
+
+                <!-- Post #1: Aeternus.Band1 -->
+                <div class="insta-post-card">
+                  <div class="insta-post-header">
+                    <div class="insta-post-user">
+                      <div class="insta-post-avatar">
+                        <img src="https://i.ibb.co.com/6JYfsFLF/b39054b32c036db2c4b71af0cdeb7684.pngq=80&w=200&auto=format&fit=crop" alt="Ryul">
+                      </div>
+                      <span class="insta-post-author">Aeternus.band</span>
+                    </div>
+                    <span>•••</span>
+                  </div>
+                  <div class="insta-post-img-box">
+                    <img src="https://i.ibb.co.com/Psz8MjnZ/LNGSHOT-Ohyul-Ryul-Woojin-Louis.jpgq=80&w=800&auto=format&fit=crop" alt="Ryul Post">
+                  </div>
+                  <div class="insta-post-actions">
+                    <svg class="ig-icon"><use href="#ig-heart"/></svg>
+<svg class="ig-icon"><use href="#ig-comment"/></svg>
+<svg class="ig-icon"><use href="#ig-send"/></svg>
+                  </div>
+                  <div class="insta-post-likes">40,420 likes</div>
+                  <div class="insta-post-caption">
+                    <strong>Aeternus.Band</strong> Aeternus bangsa besar. New album 2 minggu lagi yak
+                  </div>
+                </div>
+
+                <!-- Post #2: gabiel mavis -->
+                <div class="insta-post-card">
+                  <div class="insta-post-header">
+                    <div class="insta-post-user">
+                      <div class="insta-post-avatar">
+                        <img src="https://i.ibb.co.com/CK0K1NcK/Woojin-Weverse-260324.jpgq=80&w=200&auto=format&fit=crop" alt="Ryul">
+                      </div>
+                      <span class="insta-post-author">gabiel_mavis</span>
+                    </div>
+                    <span>•••</span>
+                  </div>
+                  <div class="insta-post-img-box">
+                    <img src="https://i.ibb.co.com/VWXLvRdm/download-4.jpgq=80&w=800&auto=format&fit=crop" alt="Ryul Post">
+                  </div>
+                  <div class="insta-post-actions">
+                    <svg class="ig-icon"><use href="#ig-heart"/></svg>
+<svg class="ig-icon"><use href="#ig-comment"/></svg>
+<svg class="ig-icon"><use href="#ig-send"/></svg>
+                  </div>
+                  <div class="insta-post-likes">10,420 likes</div>
+                  <div class="insta-post-caption">
+                    <strong>gabiel_mavis</strong> makasi uda keren @80.proof, egi signing out. peace!
+                  </div>
+                </div>
+
+                <!-- Post #3: leonard -->
+                <div class="insta-post-card">
+                  <div class="insta-post-header">
+                    <div class="insta-post-user">
+                      <div class="insta-post-avatar">
+                        <img src="https://i.ibb.co.com/mFVwx232/Louis.jpgq=80&w=200&auto=format&fit=crop" alt="Ryul">
+                      </div>
+                      <span class="insta-post-author">leonard90</span>
+                    </div>
+                    <span>•••</span>
+                  </div>
+                  <div class="insta-post-img-box">
+                    <img src="https://i.ibb.co.com/qQfbmf4/louis-lngshot-icon.jpgq=80&w=800&auto=format&fit=crop" alt="Ryul Post">
+                  </div>
+                  <div class="insta-post-actions">
+                    <svg class="ig-icon"><use href="#ig-heart"/></svg>
+<svg class="ig-icon"><use href="#ig-comment"/></svg>
+<svg class="ig-icon"><use href="#ig-send"/></svg>
+                  </div>
+                  <div class="insta-post-likes">9,220 likes</div>
+                  <div class="insta-post-caption">
+                    <strong>leonard90</strong> yesterday's photoshoot! sponsored by @gabiel_mavis Egi's neverending snapback supply.
+                  </div>
+                </div>
+
+                <!-- Post #3: jovan.ralleigh -->
+                <div class="insta-post-card">
+                  <div class="insta-post-header">
+                    <div class="insta-post-user">
+                      <div class="insta-post-avatar">
+                        <img src="https://i.ibb.co.com/VW81fc6c/ccf88a8847693b2fc3a7f991da10f2b5.jpgq=80&w=200&auto=format&fit=crop" alt="Ryul">
+                      </div>
+                      <span class="insta-post-author">jovan.ralleigh</span>
+                    </div>
+                    <span>•••</span>
+                  </div>
+                  <div class="insta-post-img-box">
+                    <img src="https://i.ibb.co.com/NnmP8TkQ/download-2.jpgq=80&w=800&auto=format&fit=crop" alt="Ryul Post">
+                  </div>
+                  <div class="insta-post-actions">
+                    <svg class="ig-icon"><use href="#ig-heart"/></svg>
+<svg class="ig-icon"><use href="#ig-comment"/></svg>
+<svg class="ig-icon"><use href="#ig-send"/></svg>
+                  </div>
+                  <div class="insta-post-likes">13,220 likes</div>
+                  <div class="insta-post-caption">
+                    <strong>jovan.ralleigh</strong> City Of Love
+                  </div>
+                </div>
+
+                <!-- Post #5: Aeternus.Band2 -->
+                <div class="insta-post-card">
+                  <div class="insta-post-header">
+                    <div class="insta-post-user">
+                      <div class="insta-post-avatar">
+                        <img src="https://i.ibb.co.com/6JYfsFLF/b39054b32c036db2c4b71af0cdeb7684.pngq=80&w=200&auto=format&fit=crop" alt="Ryul">
+                      </div>
+                      <span class="insta-post-author">Aeternus.band</span>
+                    </div>
+                    <span>•••</span>
+                  </div>
+                  <div class="insta-post-img-box">
+                    <img src="https://i.ibb.co.com/27ZG9ppF/lngshot-2.jpgq=80&w=800&auto=format&fit=crop" alt="Ryul Post">
+                  </div>
+                  <div class="insta-post-actions">
+                    <svg class="ig-icon"><use href="#ig-heart"/></svg>
+<svg class="ig-icon"><use href="#ig-comment"/></svg>
+<svg class="ig-icon"><use href="#ig-send"/></svg>
+                  </div>
+                  <div class="insta-post-likes">34,970 likes</div>
+                  <div class="insta-post-caption">
+                    <strong>Aeternus.Band</strong> recording buat kalian jiakh
+                  </div>
+                </div>
+
+                
+
+              </div>
+            </div>
+
+            <!-- PROFILE TAB: KWON OHYUL PROFILE & GRID -->
+            <div id="insta-tab-profile" class="insta-tab-view active">
+              <div class="insta-profile-body">
+                <div class="insta-profile-info">
+                  <div class="insta-stats-row">
+                    <div class="insta-avatar-large">
+                      <img src="https://i.ibb.co.com/RpdHZgQs/image.jpg" alt="Profile Avatar">
+                    </div>
+                    <div class="insta-stat-col">
+                      <span class="insta-stat-num">4</span>
+                      <span class="insta-stat-label">Posts</span>
+                    </div>
+                    <div class="insta-stat-col">
+                      <span class="insta-stat-num">11.4k</span>
+                      <span class="insta-stat-label">Followers</span>
+                    </div>
+                    <div class="insta-stat-col">
+                      <span class="insta-stat-num">180</span>
+                      <span class="insta-stat-label">Following</span>
+                    </div>
+                  </div>
+
+                  <div class="insta-bio-block">
+                    <span class="insta-fullname">Kwon Ohyul</span>
+                    <span class="insta-bio-text">@Aeternus.band · Lead Vocal · sometimes model<br>Do it scared<br>"What is grief, if not love persevering."</span>
+                  </div>
+
+                  <div class="insta-action-row">
+                    <button class="insta-btn">Following</button>
+                    <button class="insta-btn">Message</button>
+                  </div>
+                </div>
+
+                <div class="insta-tabs-bar">
+                  <div class="insta-tab-item active"><svg class="ig-icon"><use href="#ig-grid"/></svg></div>
+<div class="insta-tab-item"><svg class="ig-icon"><use href="#ig-tagged"/></svg></div>
+                </div>
+
+                <div class="insta-feed-grid">
+  <div class="insta-grid-square" onclick="openProfilePost(0)">
+    <img src="https://i.ibb.co.com/pBGXRmMn/ohyul-ryul-lngshot.jpg" alt="Post 1">
+  </div>
+  <div class="insta-grid-square" onclick="openProfilePost(1)">
+    <img src="https://i.ibb.co.com/C3DrQJqG/Ohyul-LNGSHOT.jpgq=80&w=400&auto=format&fit=crop" alt="Post 2">
+  </div>
+  <div class="insta-grid-square" onclick="openProfilePost(2)">
+    <img src="https://i.ibb.co.com/dJDJGczN/download-6.jpgq=80&w=400&auto=format&fit=crop" alt="Post 3">
+  </div>
+  <div class="insta-grid-square" onclick="openProfilePost(3)">
+    <img src="https://i.ibb.co.com/6JYfsFLF/b39054b32c036db2c4b71af0cdeb7684.pngq=80&w=400&auto=format&fit=crop" alt="Post 4">
+  </div>
+</div>
+              </div>
+            </div>
+
+            <!-- IN-APP INSTAGRAM SINGLE POST LIGHTBOX VIEW -->
+            <div id="insta-post-modal" class="insta-post-modal">
+  <div class="insta-post-top-bar">
+    <button class="insta-back-btn" onclick="closeInstaPostView()">
+      <svg class="ig-icon"><use href="#ig-chevron"/></svg>
+    </button>
+    <span class="insta-post-top-title">Posts</span>
+    <span style="width:30px;"></span>
+  </div>
+  <div id="insta-posts-list" class="insta-feed-scroll"></div>
+</div>
+
+          </div>
+
+          <!-- INSTAGRAM BOTTOM TAB BAR -->
+          <div class="insta-bottom-nav">
+  <div id="tab-btn-home" class="insta-nav-tab" onclick="switchInstaTab('home')">
+    <svg class="ig-icon"><use href="#ig-home"/></svg>
+  </div>
+  <div class="insta-nav-tab"><svg class="ig-icon"><use href="#ig-search"/></svg></div>
+  <div class="insta-nav-tab"><svg class="ig-icon"><use href="#ig-plus"/></svg></div>
+  <div class="insta-nav-tab"><svg class="ig-icon"><use href="#ig-heart"/></svg></div>
+  <div id="tab-btn-profile" class="insta-nav-tab active" onclick="switchInstaTab('profile')">
+    <div class="insta-nav-avatar">
+      <img src="https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg" alt="Nav Avatar">
+    </div>
+  </div>
+</div>
+
+        </div>
+      </div>
+
+      <div class="narrative-card">
+        Siap? <i>Well,</i> siap ga siap semua yang bakal terjadi sudah terjadi. <p></p><br><i>Might aswell enjoy it while you can.</i>
+      </div>
+
+      <!-- IPHONE BEZEL #2: iMESSAGE CHATROOM & INBOX SIMULATOR -->
+      <div class="iphone-device-outer-frame">
+  <div class="iphone-dynamic-island"><div class="camera-lens"></div></div>
+  <div class="iphone-sim-container sim-mount" data-sim="1"></div>
+</div>
+
+      <div class="narrative-card">
+        [ Do you trust him? :)]
+      </div>
+
+      <button class="start-btn" onclick="slideLeftToNextChapter(1, 2)">
+        <span>PROCEED TO CHAPTER 2</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- ==========================================================================
+       CHAPTER 2: VOICE INTERVENTION
+       SEARCH KEYWORD: #CHAPTER_2_CONTAINER
+       ========================================================================== -->
+    <div id="chapter-2" class="page-section chapter-page">
+      <div class="ch-top-nav">
+        <button class="nav-circle-btn" onclick="goBackToMainLanding()">←</button>
+        <button class="nav-circle-btn" onclick="toggleSidebar()">☰</button>
+      </div>
+
+      <div class="ch-title-block">
+        <div class="ch-main-title">CHAPTER 2</div>
+      </div>
+      <div class="ch-sub-title">VOICE INTERVENTION.</div>
+
+      <div class="narrative-card">
+        [ Chapter 2 Narrative: A ringtone pierces the night. Kwon Ohyul is attempting a direct audio connection. ]
+      </div>
+
+      <div class="iphone-device-outer-frame">
+  <div class="iphone-dynamic-island"><div class="camera-lens"></div></div>
+  <div class="iphone-sim-container sim-mount" data-sim="2"></div>
+</div>
+
+      <div class="narrative-card">
+        [ Chapter 2 Outcome: Audio intercept captured. Proceeding to surveillance logs. ]
+      </div>
+
+      <button class="start-btn" onclick="slideLeftToNextChapter(2, 3)">
+        <span>PROCEED TO CHAPTER 3</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- ==========================================================================
+       CHAPTER 3: SURVEILLANCE ROOM
+       SEARCH KEYWORD: #CHAPTER_3_CONTAINER
+       ========================================================================== -->
+    <div id="chapter-3" class="page-section chapter-page">
+      <div class="ch-top-nav">
+        <button class="nav-circle-btn" onclick="goBackToMainLanding()">←</button>
+        <button class="nav-circle-btn" onclick="toggleSidebar()">☰</button>
+      </div>
+
+      <div class="ch-title-block">
+        <div class="ch-main-title">CHAPTER 3</div>
+      </div>
+      <div class="ch-sub-title">SURVEILLANCE ROOM.</div>
+
+      <div class="narrative-card">
+        [ Chapter 3 Narrative: Accessing security cameras. Analyzing footage from the east corridor. ]
+      </div>
+
+<div class="iphone-device-outer-frame">
+  <div class="iphone-dynamic-island"><div class="camera-lens"></div></div>
+  <div class="iphone-sim-container sim-mount" data-sim="3"></div>
+</div>
+
+      <div class="narrative-card">
+        [ Chapter 3 Outcome: Surveillance footage stored in case file. Move to Harbor intercept. ]
+      </div>
+
+      <button class="start-btn" onclick="slideLeftToNextChapter(3, 4)">
+        <span>PROCEED TO CHAPTER 4</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- ==========================================================================
+       CHAPTER 4: DOCKS INTERCEPT
+       SEARCH KEYWORD: #CHAPTER_4_CONTAINER
+       ========================================================================== -->
+    <div id="chapter-4" class="page-section chapter-page">
+      <div class="ch-top-nav">
+        <button class="nav-circle-btn" onclick="goBackToMainLanding()">←</button>
+        <button class="nav-circle-btn" onclick="toggleSidebar()">☰</button>
+      </div>
+
+      <div class="ch-title-block">
+        <div class="ch-main-title">CHAPTER 4</div>
+      </div>
+      <div class="ch-sub-title">DOCKS INTERCEPT.</div>
+
+      <div class="narrative-card">
+        [ Chapter 4 Narrative: Rain pours over the harbor. Shadowy figures unload cargo near Pier 9. ]
+      </div>
+
+      <div class="iphone-device-outer-frame">
+  <div class="iphone-dynamic-island"><div class="camera-lens"></div></div>
+  <div class="iphone-sim-container sim-mount" data-sim="4"></div>
+</div>
+
+      <div class="narrative-card">
+        [ Chapter 4 Outcome: Dock photos attached to evidence file. Prepare for interrogation. ]
+      </div>
+
+      <button class="start-btn" onclick="slideLeftToNextChapter(4, 5)">
+        <span>PROCEED TO CHAPTER 5</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- ==========================================================================
+       CHAPTER 5: CROSS-EXAMINATION
+       SEARCH KEYWORD: #CHAPTER_5_CONTAINER
+       ========================================================================== -->
+    <div id="chapter-5" class="page-section chapter-page">
+      <div class="ch-top-nav">
+        <button class="nav-circle-btn" onclick="goBackToMainLanding()">←</button>
+        <button class="nav-circle-btn" onclick="toggleSidebar()">☰</button>
+      </div>
+
+      <div class="ch-title-block">
+        <div class="ch-main-title">CHAPTER 5</div>
+      </div>
+      <div class="ch-sub-title">CROSS-EXAMINATION.</div>
+
+      <div class="narrative-card">
+        [ Chapter 5 Narrative: Sitting across from Ryul in the interrogation room. Contradictions appear in his statement. ]
+      </div>
+
+      <div class="iphone-device-outer-frame">
+  <div class="iphone-dynamic-island"><div class="camera-lens"></div></div>
+  <div class="iphone-sim-container sim-mount" data-sim="5"></div>
+</div>
+
+      <div class="narrative-card">
+        [ Chapter 5 Outcome: Confession extracted. Proceed to final verdict. ]
+      </div>
+
+      <button class="start-btn" onclick="slideLeftToNextChapter(5, 6)">
+        <span>PROCEED TO CHAPTER 6</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- ==========================================================================
+       CHAPTER 6: FINAL VERDICT
+       SEARCH KEYWORD: #CHAPTER_6_CONTAINER
+       ========================================================================== -->
+    <div id="chapter-6" class="page-section chapter-page">
+      <div class="ch-top-nav">
+        <button class="nav-circle-btn" onclick="goBackToMainLanding()">←</button>
+        <button class="nav-circle-btn" onclick="toggleSidebar()">☰</button>
+      </div>
+
+      <div class="ch-title-block">
+        <div class="ch-main-title">CHAPTER 6</div>
+      </div>
+      <div class="ch-sub-title">FINAL VERDICT.</div>
+
+      <div class="narrative-card">
+        [ Chapter 6 Narrative: The truth is exposed. Choose whether to turn over the encrypted drives or destroy them. ]
+      </div>
+
+      <div class="iphone-device-outer-frame">
+  <div class="iphone-dynamic-island"><div class="camera-lens"></div></div>
+  <div class="iphone-sim-container sim-mount" data-sim="6"></div>
+</div>
+
+      <div class="narrative-card">
+        [ Chapter 6 Outcome: Case run complete. All evidence archives updated. ]
+      </div>
+
+      <button class="start-btn" onclick="completeFirstRunAndReturnHome()">
+        <span>FINISH RUN & RETURN HOME</span>
+        <span>↺</span>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       SECTION 9: INSTAGRAM SIMULATOR LOGIC
+       SEARCH KEYWORD: #INSTA_TAB_SWITCHER
+       ========================================================================== */
+    function switchInstaTab(tabKey) {
+  closeInstaPostView();
+  ['home', 'profile'].forEach(k => {
+    const on = (k === tabKey);
+    document.getElementById('insta-tab-' + k).classList.toggle('active', on);
+    document.getElementById('tab-btn-' + k).classList.toggle('active', on);
+    document.getElementById('insta-header-' + k).style.display = on ? 'flex' : 'none';
+  });
+}
+
+    const PROFILE_AVATAR = 'https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg';
+
+const PROFILE_POSTS = [
+  { img: 'https://i.ibb.co.com/pBGXRmMn/ohyul-ryul-lngshot.jpg', likes: '21,910 likes', time: '2 days ago',
+    caption: 'beautiful sky with beautiful people :)' },
+  { img: 'https://i.ibb.co.com/C3DrQJqG/Ohyul-LNGSHOT.jpgq=80&w=800&auto=format&fit=crop', likes: '12,820 likes', time: '3 days ago',
+    caption: 'photoshoot for @milkia.perfume :>' },
+  { img: 'https://i.ibb.co.com/dJDJGczN/download-6.jpgq=80&w=800&auto=format&fit=crop', likes: '7,140 likes', time: '5 days ago',
+    caption: 'culik topinya egi @gabiel_mavis' },
+  { img: 'https://i.ibb.co.com/6JYfsFLF/b39054b32c036db2c4b71af0cdeb7684.pngq=80&w=800&auto=format&fit=crop', likes: '24,050 likes', time: '1 week ago',
+    caption: 'blood is not thickeer than water with these people' }
+];
+
+function openProfilePost(index) {
+  const list = document.getElementById('insta-posts-list');
+  list.innerHTML = PROFILE_POSTS.map((p, i) => `
+    <div class="insta-post-card" id="insta-post-${i}">
+      <div class="insta-post-header">
+        <div class="insta-post-user">
+          <div class="insta-post-avatar"><img src="${PROFILE_AVATAR}" alt=""></div>
+          <span class="insta-post-author">ohyul_kwon</span>
+        </div>
+        <span>•••</span>
+      </div>
+      <div class="insta-post-img-box"><img src="${p.img}" alt=""></div>
+      <div class="insta-post-actions">
+        <svg class="ig-icon"><use href="#ig-heart"/></svg>
+        <svg class="ig-icon"><use href="#ig-comment"/></svg>
+        <svg class="ig-icon"><use href="#ig-send"/></svg>
+      </div>
+      <div class="insta-post-likes">${p.likes}</div>
+      <div class="insta-post-caption"><strong>ohyul_kwon</strong> ${p.caption}</div>
+      <div class="insta-post-time">${p.time}</div>
+    </div>`).join('');
+
+  document.getElementById('insta-header-profile').style.display = 'none';
+  document.getElementById('insta-post-modal').classList.add('active');
+  const target = document.getElementById('insta-post-' + index);
+  list.scrollTop = target ? target.offsetTop : 0;
+}
+
+function closeInstaPostView() {
+  document.getElementById('insta-post-modal').classList.remove('active');
+  document.getElementById('insta-header-profile').style.display = 'flex';
+}
+
+    /* ==========================================================================
+       SECTION 10: AUDIO SYNTHESIZER ENGINE
+       SEARCH KEYWORD: #AUDIO_ENGINE
+       ========================================================================== */
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playKeySound() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const bufferSize = audioCtx.sampleRate * 0.012;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2200 + Math.random() * 600, now);
+      filter.Q.setValueAtTime(3.5, now);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start(now);
+    }
+
+    function playNotificationChime() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(1046.5, now);
+      osc2.frequency.setValueAtTime(1318.5, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.15);
+      osc2.start(now + 0.08);
+      osc2.stop(now + 0.4);
+    }
+
+    document.addEventListener('touchstart', initAudio, { once: true });
+    document.addEventListener('click', initAudio, { once: true });
+
+    /* ==========================================================================
+       SECTION 11: EVIDENCE GALLERY DATA & EXPLICIT BRANCH BADGES
+       SEARCH KEYWORD: #GALLERY_DATA_BRANCHES
+       ========================================================================== */
+    let userChosenBranch = "default";
+
+    let galleryUnlockedState = {
+      ohyul: true,
+      surveillance: false,
+      encrypted: false,
+      docks: false
+    };
+
+    const GALLERY_DATA = {
+      ohyul: {
+        title: "EVIDENCE FILE 01: KWON OHYUL",
+        slides: [
+          { 
+            img: "https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg", 
+            tag: "PHOTO #1", 
+            branchLabel: "BRANCH 1.0: BASE FILE",
+            caption: "Kwon Ohyul captured on security tape leaving studio at 11:42 PM." 
+          },
+          { 
+            img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop", 
+            tag: "PHOTO #2", 
+            branchLabel: "BRANCH 1.0: BASE FILE",
+            caption: "Personal keycard left near the rear exit." 
+          }
+        ],
+        branchSpecificSlides: {
+          branchA: [
+            { 
+              img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800&auto=format&fit=crop", 
+              tag: "EVIDENCE OUTCOME", 
+              branchLabel: "BRANCH 3.1: EXPOSED",
+              caption: "Leaked group chat evidence after you told the agency about Ohyul's secret text." 
+            }
+          ],
+          branchB: [
+            { 
+              img: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop", 
+              tag: "EVIDENCE OUTCOME", 
+              branchLabel: "BRANCH 3.2: COVERED",
+              caption: "Surveillance footage showing Ohyul escaping undetected near the harbor docks." 
+            }
+          ]
+        }
+      },
+      surveillance: {
+        title: "EVIDENCE FILE 02: SURVEILLANCE LOGS",
+        slides: [
+          { 
+            img: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop", 
+            tag: "FEED #04", 
+            branchLabel: "BRANCH 2.1: INTERCEPT",
+            caption: "Corridor camera showing secondary figure entering room at 01:05 AM." 
+          }
+        ]
+      },
+      encrypted: {
+        title: "EVIDENCE FILE 03: ENCRYPTED DRIVES",
+        slides: [
+          { 
+            img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800&auto=format&fit=crop", 
+            tag: "HARD DRIVE", 
+            branchLabel: "BRANCH 5.1: RECOVERY",
+            caption: "Unrecovered external storage containing voice intercepts." 
+          }
+        ]
+      },
+      docks: {
+        title: "EVIDENCE FILE 04: HARBOR DOCKS",
+        slides: [
+          { 
+            img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop", 
+            tag: "PIER 9", 
+            branchLabel: "BRANCH 4.2: DOCKS",
+            caption: "Cargo manifest abandoned on site at Pier 9." 
+          }
+        ]
+      }
+    };
+
+    function openGallery(key) {
+      if (!galleryUnlockedState[key]) {
+        alert("This case gallery is locked! Complete playthrough choices to uncover this evidence.");
+        return;
+      }
+      const data = GALLERY_DATA[key];
+      if (!data) return;
+
+      document.getElementById('gallery-modal-title').innerText = data.title;
+      const slider = document.getElementById('gallery-slider');
+      slider.innerHTML = '';
+
+      let finalSlidesToDisplay = [...data.slides];
+      if (data.branchSpecificSlides && data.branchSpecificSlides[userChosenBranch]) {
+        finalSlidesToDisplay = finalSlidesToDisplay.concat(data.branchSpecificSlides[userChosenBranch]);
+      }
+
+      finalSlidesToDisplay.forEach(slide => {
+        const card = document.createElement('div');
+        card.className = 'gallery-slide-card';
+        card.onclick = () => openFullscreenImage(slide.img, slide.caption);
+        card.innerHTML = `
+          <div class="expand-hint-badge">🔍 Expand</div>
+          <img src="${slide.img}" alt="Slide">
+          <div class="gallery-slide-info">
+            <span class="explicit-branch-tag">${slide.branchLabel || 'BRANCH 1.0'}</span>
+            <span class="gallery-slide-tag">${slide.tag}</span>
+            <p class="gallery-slide-caption">${slide.caption}</p>
+          </div>
+        `;
+        slider.appendChild(card);
+      });
+
+      document.getElementById('gallery-modal').classList.add('active');
+    }
+
+    function closeGalleryModal() {
+      document.getElementById('gallery-modal').classList.remove('active');
+    }
+
+    function openFullscreenImage(imgSrc, captionText) {
+      document.getElementById('fullscreen-img').src = imgSrc;
+      document.getElementById('fullscreen-caption').innerText = captionText || "";
+      document.getElementById('fullscreen-image-modal').classList.add('active');
+    }
+
+    function closeFullscreenImage() {
+      document.getElementById('fullscreen-image-modal').classList.remove('active');
+    }
+
+    function completeFirstRunAndReturnHome() {
+      galleryUnlockedState.surveillance = true;
+      galleryUnlockedState.encrypted = true;
+      galleryUnlockedState.docks = true;
+
+      ['surveillance', 'encrypted', 'docks'].forEach(key => {
+        const card = document.getElementById('gal-card-' + key);
+        const sub = document.getElementById('gal-sub-' + key);
+        if (card) card.classList.remove('locked');
+        if (sub) {
+          if (key === 'surveillance') sub.innerText = 'Surveillance';
+          if (key === 'encrypted') sub.innerText = 'Encrypted Data';
+          if (key === 'docks') sub.innerText = 'The Docks';
+        }
+      });
+
+      for (let i = 2; i <= 6; i++) {
+        unlockCheckpoint(i);
+      }
+
+      goBackToMainLanding();
+    }
+
+    /* ==========================================================================
+       SECTION 12: CHATROOM SIMULATOR ENGINE
+       SEARCH KEYWORD: #SIMULATOR_ENGINE
+       ========================================================================== */
+    const CUSTOM_AUDIO_FILES = {
+      ohyul_call_audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    };
+
+    const CHAT_ROOMS = {
+      ohyul: {
+        title: "Kwon Ohyul",
+        avatar: "https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg",
+        unread: true,
+        history: [
+          { sender: 'other', text: "Don't forget to delete the log files." },
+          { sender: 'other', text: "Are you alone right now? Don't answer if someone is near you." }
+        ],
+        script: [
+          { sender: 'me', text: "I'm alone. What happened? You were supposed to call me earlier." },
+          {
+            type: 'incoming_call',
+            callerName: 'Kwon Ohyul',
+            callerAvatarImg: 'https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg',
+            audioKey: 'ohyul_call_audio',
+            callDelay: 1200,
+            declinedBranch: "branchB",
+            acceptedBranch: "branchA"
+          }
+        ],
+        scriptPointer: 0
+      },
+      group: {
+        title: "LNGSHOT Official",
+        avatar: "LS",
+        isGroup: true,
+        unread: false,
+        history: [
+          { sender: 'Ryul', text: "Meeting was moved to 4 PM tomorrow." },
+          { sender: 'Louis', text: "Got it. Make sure Ohyul knows." }
+        ],
+        script: [
+          { sender: 'Ryul', text: "Has anyone seen Ohyul today? He hasn't answered calls." },
+          { sender: 'Louis', text: "He said he was going out late last night." },
+          { sender: 'me', text: "He messaged me privately earlier... he said something strange." }
+        ],
+        scriptPointer: 0,
+        choices: [
+          { text: "Tell them about Ohyul's secret text", branch: "branchA" },
+          { text: "Lie and say you haven't heard from him", branch: "branchB" }
+        ]
+      },
+      ryul: {
+        title: "Kim Ryul",
+        avatar: "KR",
+        unread: false,
+        history: [],
+        script: [{ sender: 'other', text: "Check the files I uploaded to the drive when you can." }],
+        scriptPointer: 0
+      },
+      louis: {
+        title: "Louis",
+        avatar: "L",
+        unread: false,
+        history: [],
+        script: [{ sender: 'other', text: "Call me when you're free. It's urgent." }],
+        scriptPointer: 0
+      }
+    };
+
+    const TYPING_CHAR_DELAY = 45;
+    const OPPONENT_TYPING_DELAY = 1600;
+
+    let currentRoomKey = null;
+    let pendingMessageText = "";
+    let typingTimeoutId = null;
+    let scriptLoopTimeoutId = null;
+    let backgroundNotifTriggered = false;
+    let activeCallData = null;
+    let callTimerInterval = null;
+    let callSeconds = 0;
+
+    const chatroomView = document.getElementById('chatroom-view');
+    const chatBox = document.getElementById('chat-box');
+    const inputDisplay = document.getElementById('input-display');
+    const sendBtn = document.getElementById('send-btn');
+    const actionSheet = document.getElementById('ios-action-sheet');
+    const overlay = document.getElementById('ios-overlay');
+    const sheetOptionsContainer = document.getElementById('sheet-options-container');
+    const notifBanner = document.getElementById('notif-banner');
+
+    const callScreen = document.getElementById('call-screen');
+    const callAvatar = document.getElementById('call-avatar');
+    const callName = document.getElementById('call-name');
+    const callStatus = document.getElementById('call-status');
+    const callTimer = document.getElementById('call-timer');
+    const callIncomingActions = document.getElementById('call-incoming-actions');
+    const callActiveActions = document.getElementById('call-active-actions');
+    const inCallControls = document.getElementById('in-call-controls');
+    const audioProgressFill = document.getElementById('audio-progress-fill');
+    const audioPlayer = document.getElementById('call-audio-player');
+
+    function isAllRoomsRead() {
+      return Object.values(CHAT_ROOMS).every(room => !room.unread);
+    }
+
+    function clearActiveTimeouts() {
+      if (typingTimeoutId) clearTimeout(typingTimeoutId);
+      if (scriptLoopTimeoutId) clearTimeout(scriptLoopTimeoutId);
+      typingTimeoutId = null;
+      scriptLoopTimeoutId = null;
+      const el = document.getElementById('typing-indicator');
+      if (el) el.remove();
+    }
+
+    function openChat(roomKey) {
+      clearActiveTimeouts();
+      currentRoomKey = roomKey;
+      const room = CHAT_ROOMS[roomKey];
+      if (!room) return;
+
+      room.unread = false;
+
+      if (roomKey === 'ohyul') {
+        const badge = document.getElementById('ohyul-unread-badge');
+        const snippet = document.getElementById('ohyul-snippet');
+        if (badge) badge.style.display = 'none';
+        if (snippet) snippet.classList.remove('unread');
+      } else if (roomKey === 'group') {
+        const badge = document.getElementById('group-unread-badge');
+        const snippet = document.getElementById('group-snippet');
+        if (badge) badge.style.display = 'none';
+        if (snippet) snippet.classList.remove('unread');
+      }
+
+      document.getElementById('chat-title').innerText = room.title;
+      const chatAvatarContainer = document.getElementById('chat-avatar');
+      if (room.avatar.startsWith('http')) {
+        chatAvatarContainer.innerHTML = `<img src="${room.avatar}" alt="${room.title}">`;
+      } else {
+        chatAvatarContainer.innerHTML = room.avatar;
+      }
+
+      chatBox.innerHTML = '';
+      if (room.history && room.history.length > 0) {
+        const histStamp = document.createElement('div');
+        histStamp.className = 'timestamp';
+        histStamp.innerText = 'Yesterday 10:45 PM';
+        chatBox.appendChild(histStamp);
+        room.history.forEach(h => {
+          appendMessage(h.text, h.sender === 'me' ? 'sent' : 'received', h.sender !== 'me' && h.sender !== 'other' ? h.sender : null);
+        });
+      }
+
+      const todayStamp = document.createElement('div');
+      todayStamp.className = 'timestamp';
+      todayStamp.innerText = 'iMessage · Today 1:22 AM';
+      chatBox.appendChild(todayStamp);
+
+      inputDisplay.innerHTML = '<span class="placeholder">iMessage</span>';
+      sendBtn.classList.remove('ready');
+      pendingMessageText = "";
+
+      sheetOptionsContainer.innerHTML = '';
+      if (room.choices) {
+        room.choices.forEach(ch => {
+          const btn = document.createElement('button');
+          btn.className = 'ios-sheet-btn';
+          btn.innerText = ch.text;
+          btn.onclick = () => makeChoice(ch.branch);
+          sheetOptionsContainer.appendChild(btn);
+        });
+      }
+
+      chatroomView.classList.add('smooth-transition');
+      chatroomView.style.transform = 'translateX(0)';
+      chatroomView.classList.add('active');
+
+      if (room.scriptPointer < room.script.length) {
+        processNextScriptItem();
+      } else if (room.choices && isAllRoomsRead()) {
+        showActionSheet();
+      }
+
+      if (roomKey === 'ohyul' && !backgroundNotifTriggered) {
+        backgroundNotifTriggered = true;
+        setTimeout(triggerBackgroundGroupNotification, 3500);
+      }
+    }
+
+    function closeChat() {
+      clearActiveTimeouts();
+      chatroomView.classList.add('smooth-transition');
+      chatroomView.style.transform = 'translateX(100%)';
+      chatroomView.classList.remove('active');
+      hideActionSheet();
+    }
+
+    function triggerBackgroundGroupNotification() {
+      playNotificationChime();
+      notifBanner.classList.add('active');
+      if (CHAT_ROOMS.group) CHAT_ROOMS.group.unread = true;
+      const badge = document.getElementById('group-unread-badge');
+      const snippet = document.getElementById('group-snippet');
+      if (badge) badge.style.display = 'block';
+      if (snippet) {
+        snippet.innerText = "Louis: Has anyone seen Ohyul today?";
+        snippet.classList.add('unread');
+      }
+      if (CHAT_ROOMS.group && CHAT_ROOMS.group.history) {
+        const exists = CHAT_ROOMS.group.history.some(m => m.text.includes("Has anyone seen Ohyul today?"));
+        if (!exists) {
+          CHAT_ROOMS.group.history.push({ sender: 'Louis', text: "Has anyone seen Ohyul today?" });
+        }
+      }
+      setTimeout(() => {
+        notifBanner.classList.remove('active');
+      }, 4500);
+    }
+
+    function handleNotificationClick() {
+      notifBanner.classList.remove('active');
+      openChat('group');
+    }
+
+    function processNextScriptItem() {
+      const room = CHAT_ROOMS[currentRoomKey];
+      if (!room || room.scriptPointer >= room.script.length) {
+        if (room?.choices && isAllRoomsRead()) {
+          showActionSheet();
+        }
+        return;
+      }
+
+      const item = room.script[room.scriptPointer];
+      if (item.type === 'incoming_call') {
+        const delay = item.callDelay !== undefined ? item.callDelay : 1000;
+        setTimeout(() => {
+          triggerIncomingCall(item);
+        }, delay);
+        return;
+      }
+
+      if (item.sender === 'me') {
+        pendingMessageText = item.text;
+        typeIntoChatBar(item.text, () => {
+          sendBtn.classList.add('ready');
+        });
+      } else {
+        showTypingIndicator(() => {
+          playNotificationChime();
+          appendMessage(item.text, 'received', item.sender !== 'other' ? item.sender : null);
+          room.history.push({
+            sender: item.sender !== 'other' ? item.sender : 'other',
+            text: item.text
+          });
+          room.scriptPointer++;
+          scriptLoopTimeoutId = setTimeout(processNextScriptItem, 1000);
+        });
+      }
+    }
+
+    function showTypingIndicator(callback) {
+      const bubble = document.createElement('div');
+      bubble.className = 'typing-bubble';
+      bubble.id = 'typing-indicator';
+      bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+      chatBox.appendChild(bubble);
+      scrollToBottom();
+
+      typingTimeoutId = setTimeout(() => {
+        const el = document.getElementById('typing-indicator');
+        if (el) el.remove();
+        callback();
+      }, OPPONENT_TYPING_DELAY);
+    }
+
+    function typeIntoChatBar(text, callback) {
+      inputDisplay.innerHTML = '';
+      let charIndex = 0;
+      function typeNextChar() {
+        if (charIndex < text.length) {
+          charIndex++;
+          const currentSubstring = text.substring(0, charIndex);
+          inputDisplay.innerText = currentSubstring;
+          const charToHighlight = text.charAt(charIndex - 1);
+          highlightVirtualKey(charToHighlight);
+          playKeySound();
+          typingTimeoutId = setTimeout(typeNextChar, TYPING_CHAR_DELAY);
+        } else {
+          if (callback) callback();
+        }
+      }
+      typingTimeoutId = setTimeout(typeNextChar, 500);
+    }
+
+    function highlightVirtualKey(char) {
+      const upper = char.toUpperCase();
+      const targetKey = upper === ' ' ? ' ' : upper;
+      const keyEl = document.querySelector(`.key[data-key="${CSS.escape(targetKey)}"]`);
+      if (keyEl) {
+        keyEl.classList.add('active-press');
+        setTimeout(() => keyEl.classList.remove('active-press'), 100);
+      }
+    }
+
+    function handleSendClick(event) {
+      event.stopPropagation();
+      if (!sendBtn.classList.contains('ready')) return;
+      const room = CHAT_ROOMS[currentRoomKey];
+      sendBtn.classList.remove('ready');
+      appendMessage(pendingMessageText, 'sent');
+      if (room) {
+        room.history.push({
+          sender: 'me',
+          text: pendingMessageText
+        });
+        room.scriptPointer++;
+      }
+      inputDisplay.innerHTML = '<span class="placeholder">iMessage</span>';
+      pendingMessageText = "";
+      scriptLoopTimeoutId = setTimeout(processNextScriptItem, 1000);
+    }
+
+    function appendMessage(text, type, senderName) {
+      const msg = document.createElement('div');
+      msg.className = `message ${type}`;
+      if (senderName) {
+        const tag = document.createElement('div');
+        const colorClass = senderName.toLowerCase();
+        tag.className = `sender-tag ${['ryul', 'louis', 'ohyul'].includes(colorClass) ? colorClass : 'default'}`;
+        tag.innerText = senderName;
+        msg.appendChild(tag);
+      }
+      const txtNode = document.createTextNode(text);
+      msg.appendChild(txtNode);
+      chatBox.appendChild(msg);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    /* ==========================================================================
+       SECTION 13: CALL OVERLAY ENGINE
+       SEARCH KEYWORD: #CALL_ENGINE
+       ========================================================================== */
+    function triggerIncomingCall(callItemData) {
+      activeCallData = callItemData;
+      if (callItemData.callerAvatarImg) {
+        callAvatar.innerHTML = `<img src="${callItemData.callerAvatarImg}" alt="Caller">`;
+      } else {
+        callAvatar.innerText = callItemData.callerAvatar || "KO";
+      }
+      callName.innerText = callItemData.callerName || "Kwon Ohyul";
+      callStatus.innerText = "incoming call...";
+      callTimer.style.display = "none";
+      callIncomingActions.style.display = "flex";
+      callActiveActions.style.display = "none";
+      inCallControls.classList.remove('active');
+      callScreen.classList.add('active');
+    }
+
+    function declineCall() {
+      callScreen.classList.remove('active');
+      const room = CHAT_ROOMS[currentRoomKey];
+      if (room) room.scriptPointer++;
+      appendMessage("Call Declined", "received");
+      const targetBranch = activeCallData?.declinedBranch;
+      if (targetBranch) {
+        setTimeout(() => { makeChoice(targetBranch); }, 800);
+      } else {
+        setTimeout(processNextScriptItem, 1000);
+      }
+    }
+
+    function acceptCall() {
+      callStatus.innerText = "00:00";
+      callTimer.style.display = "block";
+      callTimer.innerText = "00:00";
+      callIncomingActions.style.display = "none";
+      callActiveActions.style.display = "flex";
+      inCallControls.classList.add('active');
+      callSeconds = 0;
+      callTimerInterval = setInterval(() => {
+        callSeconds++;
+        const mins = String(Math.floor(callSeconds / 60)).padStart(2, '0');
+        const secs = String(callSeconds % 60).padStart(2, '0');
+        callTimer.innerText = `${mins}:${secs}`;
+      }, 1000);
+
+      const audioUrl = CUSTOM_AUDIO_FILES[activeCallData?.audioKey];
+      if (audioUrl) {
+        audioPlayer.src = audioUrl;
+        audioPlayer.play().catch(e => console.log("Audio restrict:", e));
+        audioPlayer.ontimeupdate = () => {
+          if (audioPlayer.duration) {
+            const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            audioProgressFill.style.width = pct + "%";
+          }
+        };
+        audioPlayer.onended = () => { endCall(); };
+      }
+    }
+
+    function endCall() {
+      if (callTimerInterval) clearInterval(callTimerInterval);
+      if (audioPlayer) {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+      }
+      callScreen.classList.remove('active');
+      const room = CHAT_ROOMS[currentRoomKey];
+      if (room) room.scriptPointer++;
+      appendMessage("Call Ended · " + callTimer.innerText, "received");
+      const targetBranch = activeCallData?.acceptedBranch;
+      if (targetBranch) {
+        setTimeout(() => { makeChoice(targetBranch); }, 800);
+      } else {
+        setTimeout(processNextScriptItem, 1000);
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 14: BRANCHING & NAVIGATION ENGINE
+       SEARCH KEYWORD: #BRANCHING_NAV_ENGINE
+       ========================================================================== */
+    function showActionSheet() {
+      if (!isAllRoomsRead()) return;
+      actionSheet.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+    }
+
+    function hideActionSheet() {
+      actionSheet.classList.add('hidden');
+      overlay.classList.add('hidden');
+    }
+
+    function toggleActionSheet() {
+      if (!CHAT_ROOMS[currentRoomKey]?.choices || !isAllRoomsRead()) return;
+      actionSheet.classList.toggle('hidden');
+      overlay.classList.toggle('hidden');
+    }
+
+    function unlockCheckpoint(cpNumber) {
+      const cpEl = document.getElementById('cp-' + cpNumber);
+      const lockEl = document.getElementById('cp-' + cpNumber + '-lock');
+      if (cpEl) {
+        cpEl.classList.remove('locked');
+        cpEl.classList.add('unlocked');
+      }
+      if (lockEl) {
+        lockEl.remove();
+      }
+    }
+
+    function makeChoice(branchKey) {
+      hideActionSheet();
+
+      userChosenBranch = branchKey;
+
+      const badge = document.getElementById('badge-branch-status');
+
+      if (branchKey === 'branchA') {
+        if (badge) badge.innerText = "BRANCH 3.1: EXPOSED";
+        appendMessage("He messaged me privately... he told me not to answer if anyone was near.", "sent");
+        showTypingIndicator(() => {
+          appendMessage("What?! Are you serious? Why didn't you tell us immediately?", "received", "Louis");
+          unlockCheckpoint(2);
+        });
+      } else if (branchKey === 'branchB') {
+        if (badge) badge.innerText = "BRANCH 3.2: COVERED";
+        appendMessage("Haven't heard anything from him. Hope he's alright.", "sent");
+        showTypingIndicator(() => {
+          appendMessage("Alright, let us know if he reaches out.", "received", "Ryul");
+          unlockCheckpoint(2);
+        });
+      } else {
+        appendMessage("Choice recorded.", "sent");
+        unlockCheckpoint(2);
+      }
+    }
+
+    let audioBGMEnabled = true;
+
+    function toggleSidebar() {
+      document.getElementById('sidebar-drawer').classList.toggle('active');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function toggleAudioBGM() {
+      audioBGMEnabled = !audioBGMEnabled;
+      const sw = document.getElementById('audio-toggle-switch');
+      const statusTxt = document.getElementById('toggle-status-text');
+      if (audioBGMEnabled) {
+        sw.classList.add('on');
+        statusTxt.innerText = "ON";
+      } else {
+        sw.classList.remove('on');
+        statusTxt.innerText = "OFF";
+      }
+    }
+
+    function openChapter1() {
+      document.getElementById('landing-page').classList.add('hidden-page');
+      const ch1 = document.getElementById('chapter-1');
+      ch1.classList.remove('slide-left-out');
+      ch1.classList.add('active-page');
+    }
+
+    function goBackToMainLanding() {
+      for (let i = 1; i <= 6; i++) {
+        const ch = document.getElementById('chapter-' + i);
+        if (ch) ch.classList.remove('active-page', 'slide-left-out');
+      }
+      document.getElementById('landing-page').classList.remove('hidden-page');
+    }
+
+    function slideLeftToNextChapter(currentNum, nextNum) {
+      const currentCh = document.getElementById('chapter-' + currentNum);
+      const nextCh = document.getElementById('chapter-' + nextNum);
+      if (currentCh && nextCh) {
+        currentCh.classList.add('slide-left-out');
+        currentCh.classList.remove('active-page');
+        nextCh.classList.remove('slide-left-out');
+        nextCh.classList.add('active-page');
+      }
+    }
+
+    function navigateToChapter(chapNum) {
+      const targetCp = document.getElementById('cp-' + chapNum);
+      if (chapNum > 1 && targetCp && targetCp.classList.contains('locked')) {
+        alert("This chapter is currently locked. Complete the preceding choices to unlock.");
+        return;
+      }
+      toggleSidebar();
+      goBackToMainLanding();
+      setTimeout(() => {
+        document.getElementById('landing-page').classList.add('hidden-page');
+        const ch = document.getElementById('chapter-' + chapNum);
+        if (ch) {
+          ch.classList.remove('slide-left-out');
+          ch.classList.add('active-page');
+        }
+      }, 300);
+    }
+  </script>
+  <script>
+const SOUND_URL = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+const OHYUL_IMG = "https://i.ibb.co.com/mVTjnkH2/IMG-1375.jpg";
+const RYUL_IMG  = "https://i.ibb.co.com/VW81fc6c/ccf88a8847693b2fc3a7f991da10f2b5.jpg";
+const acil_IMG = "https://i.ibb.co.com/Jw4hjzKX/f58b335901f02a087db7a414ae57083f.jpg";
+const lui_IMG  = "https://i.ibb.co.com/JwhLgBLY/louis.jpg";
+const group_IMG  = "https://i.ibb.co.com/6JYfsFLF/b39054b32c036db2c4b71af0cdeb7684.png";
+const STORY_FLAGS = {};
+    const NAME_COLORS = {
+  'Jovan Ralleigh':     '#ff375f',
+  'Gabiel Mavis (egi)': '#ffd60a',
+  'Louis':              '#30d158',
+  'Ryul':               '#bf5af2',
+  'Ohyul':              '#64d2ff'
+};
+
+const colorFor = name => {
+  if (NAME_COLORS[name]) return NAME_COLORS[name];
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `hsl(${h}, 75%, 62%)`;   // same name always gives the same color
+};
+
+const CHAPTER_SIM_DATA = {
+
+  1: {
+    time: "16.50",
+    timing: { typeChar: 45, typingIndicator: 1600, gap: 1000, callDelay: 1500 },
+        rooms: [
+          {
+        key: 'acil', title: 'Gabiel Mavis (egi)', avatar: acil_IMG, time: '16.32', unread: true,
+        history: [
+          { sender: 'other', text: "lex" },
+          { sender: 'other', text: "kunci motor gw nitip dlu yak" },
+          { sender: 'other', text: "bsk2 aja kl ketemu lu bawain" },
+          { sender: 'other', text: "maksi" },
+          { sender: 'me', text: "maksi maksi" },
+          { sender: 'me', text: "makan siang?" },
+          { sender: 'other', text: "galak bener" },
+          { sender: 'other', text: "makasi baginda" },
+          { sender: 'me', text: "🖕" },
+        ],
+        script: [
+          { sender: 'other', text: "lex" },
+          { sender: 'other', text: "sore lu ikut kan" },
+          { sender: 'other', text: "janlup kunci gw yak" },
+          { sender: 'me', text: "kumpul dmn" },
+          { sender: 'other', text: "ngikut jovan" },
+          { type: 'notify', room: 'group', sender: 'Gabiel Mavis (egi)', text: "pp pp p", delay: 1000,
+  then: [
+    { sender: 'Jovan Ralleigh', text: "berisik" },
+    { sender: 'Leonard',             text: "jadi brewek sorean?" },
+    { sender: 'Leonard', image: "https://i.ibb.co.com/gbCh7Yfp/download.jpg", text: "liat nih" },
+    { sender: 'Gabiel Mavis (egi)',             text: "gass" },
+    { sender: 'Gabiel Mavis (egi)',             text: "udh mulai duluan bae lu" },
+    { sender: 'Gabiel Mavis (egi)',             text: "jemput yak" },
+    { sender: 'Leonard',             text: "amplop bensin dulu" },
+    { sender: 'Gabiel Mavis (egi)',             text: "motor gw ditempat alexis" },
+    { sender: 'Leonard',             text: "sounds like a YOU problem sih" },
+    { sender: 'Jovan Ralleigh', text: "mau dimana entar?" },
+    { sender: 'Jovan Ralleigh', text: "lex?" },
+    { sender: 'me', text: "gue ngikut aja" },
+            ] }
+        ]
+      },
+          
+      {
+        key: 'ryul', title: 'Jovan Ralleigh', avatar: RYUL_IMG, time: '16:28', unread: true,
+        history: [
+          { sender: 'other', text: "lex, jadi ikut?" },
+          { sender: 'me',    text: "jadii. wait" },
+          { sender: 'other', text: "okayy. egi sm leon udah sampe" },
+          { sender: 'me',    text: "ohh yaudah, brewek aja duluan wkwkwk" },
+          { sender: 'me',    text: "gue otww" },
+          { sender: 'other', text: "sipp. tiati luu" },
+          { sender: 'me',    text: "okk" }
+        ],
+        script: [
+          { sender: 'other', text: "lex" },
+          { sender: 'me',    text: "oit" },
+          { type: 'notify', room: 'F_ryul', sender: 'other', text: "alexis", delay: 1000 }
+        ]
+      },
+
+          
+      {
+  key: 'F_ryul', title: 'Unknown Number', avatar: 'UN', time: '16.32',
+  hidden: true, unread: false, history: [], snippet: 'alexis',
+  script: [
+    { sender: 'other', text: "tes" },
+    { sender: 'other', text: "masuk?" },
+    { sender: 'me',    text: "..." },
+    { sender: 'me',    text: "siapa ya?" },
+    { type: 'call', name: 'Unknown Number', avatar: 'UN', audio: SOUND_URL, duration: 20,
+      onAccept:  [{ sender: 'other', text: "denger suara gua ga?" }],
+      onDecline: [{ sender: 'other', text: "please, lex. angkat dulu boleh?" }] },
+    { sender: 'me',    text: "uhm, ngga" },
+    { sender: 'other', text: "gua jovan" },
+    { sender: 'other', text: "tp bukan jovan yang lu kenal sekarang" },
+    { sender: 'me',    text: "hah?" },
+
+    { type: 'notify', room: 'ryul', sender: 'other', text: "mau ikut ga lu?", delay: 1000,
+      then: [
+        { sender: 'me',    text: "kemana jadinya" },
+        { sender: 'other', text: "lu lg pengen kmn?" },
+        { sender: 'other', text: "makan berat/ cafe?" },
+        { sender: 'me',    text: "jo" },
+        { sender: 'me',    text: "kynya lu ada faker deh" },
+        { sender: 'me',    text: "ada yg ngechat gue ngakunya lu" },
+
+        { type: 'notify', room: 'F_ryul', sender: 'other', text: "alexis", delay: 1000,
+          then: [
+            { sender: 'me',    text: "scammer anjing" },
+            { sender: 'other', text: "bukan, lex. sumpah lu harus percaya gua" },
+            { sender: 'other', text: "ya terserah deh lu mau percaya skrg apa engga. yang penting lu jangan ikut nongki malem ini" },
+            { sender: 'me',    text: "apaansi lu siapa" },
+            { sender: 'other', text: "please, lex" },
+            { type: 'notify', room: 'ryul', sender: 'other', text: "orang2 pada BU", delay: 500 },
+            { type: 'notify', room: 'ryul', sender: 'other', text: "gmn ikut ga?", delay: 2000,
+              then: [
+                { sender: 'me',    text: "wait" },
+                { type: 'notify', room: 'F_ryul', sender: 'other', text: "alexis", delay: 1000,
+                  then: [
+                    { sender: 'me',    text: "stop ya anjir" },
+                    { sender: 'other', text: "lu percaya gua?" },
+                    { type: 'card', text: "Go to Chapter 2", sub: "scroll down to proceed", delay: 5000 }
+                  ] }
+              ] }
+          ] }
+      ] }
+  ]
+},
+
+
+          
+      {
+        key: 'group', title: 'Aeternus: bocah nyimeng 101', avatar: group_IMG, isGroup: true, time: '1:12 AM',
+        history: [
+          { sender: 'Jovan Ralleigh', image: "https://i.ibb.co.com/tTT0ksNG/download-1.jpg", text: "bocah ga ada beban" },
+          { sender: 'me',    text: "banyak tuh kartu" },
+          { sender: 'Gabiel Mavis (egi)',    text: "jahh gw rugi brewek sm lu pada" },
+          { sender: 'me',    text: "skill issue kali" },
+          { sender: 'Leonard',    text: "wallet issue kalo itu" },
+          { sender: 'Gabiel Mavis (egi)',    text: "🖕" },
+        ],
+        script: []
+      }
+    ]
+  },
+
+
+
+
+
+  
+  2: {
+    time: "01:30",
+    timing: { typeChar: 45, typingIndicator: 1600, gap: 1000, callDelay: 1500 },
+    rooms: [
+      {
+        key: 'F-ryul2', title: 'Unknown Number', avatar: 'UN', time: '1:30 AM', unread: true,
+        history: [
+          { sender: 'other', text: "Are you alone right now?" },
+                 ],
+        script: [
+          { sender: 'other', text: "Pick up. Please." },
+          { type: 'call', name: 'Kwon Ohyul', avatar: OHYUL_IMG, audio: SOUND_URL, duration: 20,
+            onAccept: [{ sender: 'other', text: "Did you hear that in the background? Someone is on the line." }],
+            onDecline: [{ sender: 'other', text: "Fine. I'll leave a voicemail. Listen to it alone." }] },
+          { sender: 'me', text: "I'm listening. Tell me everything." }
+        ]
+      },
+      {
+        key: 'group', title: 'LNGSHOT Official', avatar: 'LS', isGroup: true, time: '1:12 AM',
+        history: [{ sender: 'Louis', text: "Practice is at 4 PM. Don't be late." }],
+        script: []
+      }
+    ]
+  },
+
+  3: {
+    time: "01:45",
+    rooms: [
+      {
+        key: 'cam', title: 'SECURITY FEED #04', avatar: 'CAM', time: '1:45 AM', unread: true,
+        history: [], snippet: 'Camera 4 stream decrypted.',
+        script: [
+          { sender: 'SYSTEM LOG', text: "Camera 4 stream decrypted. Motion detected in east corridor." },
+          { sender: 'me', text: "Zooming in on frame #104..." },
+          { sender: 'SYSTEM LOG', text: "Secondary figure identified. Timestamp 01:05 AM." },
+          { sender: 'me', text: "Save it to the case file." }
+        ]
+      },
+      {
+        key: 'louis', title: 'Louis', avatar: 'L', time: 'Tuesday',
+        history: [{ sender: 'other', text: "Call me when you're free." }], script: []
+      }
+    ]
+  },
+
+  4: {
+    time: "02:10",
+    rooms: [
+      {
+        key: 'harbor', title: 'HARBOR UNIT CHAT', avatar: 'HU', isGroup: true, time: '2:10 AM', unread: true,
+        history: [], snippet: 'GPS coordinates locked.',
+        script: [
+          { sender: 'Louis', text: "We've arrived at Pier 9. The containers are marked with blue paint." },
+          { sender: 'me', text: "Keep your position hidden. Ohyul might be inside." },
+          { sender: 'Louis', text: "Copy. Movement near container 7." },
+          { sender: 'me', text: "Take photos. Do not engage." }
+        ]
+      }
+    ]
+  },
+
+  5: {
+    time: "03:05",
+    onChoice: (branch) => { STORY_FLAGS.ch5 = branch; },
+    rooms: [
+      {
+        key: 'ryul', title: 'Kim Ryul', avatar: 'KR', time: '3:05 AM', unread: true,
+        history: [], snippet: 'I was never at the harbor...',
+        script: [
+          { sender: 'Ryul', text: "I was never at the harbor last night! You have no proof!" },
+          { sender: 'me', text: "What about the security footage from Pier 9 showing your car at 01:05 AM?" },
+          { sender: 'Ryul', text: "...That isn't what it looks like." },
+          { type: 'choice', options: [
+            { text: "Press him on the encrypted drives", branch: 'drives', reply: "Then explain the drives you uploaded.",
+              then: [{ sender: 'Ryul', text: "Fine. I'll tell you everything." }] },
+            { text: "Stay silent and let him talk", branch: 'silent',
+              then: [{ sender: 'Ryul', text: "...Why aren't you saying anything?" }] }
+          ] }
+        ]
+      }
+    ]
+  },
+
+  6: {
+    time: "04:00",
+    onChoice: (branch) => { STORY_FLAGS.ch6 = branch; },
+    rooms: [
+      {
+        key: 'ohyul', title: 'Kwon Ohyul', avatar: OHYUL_IMG, time: '4:00 AM', unread: true,
+        history: [], snippet: 'If you submit those logs...',
+        script: [
+          { sender: 'Ohyul', text: "If you submit those encrypted logs, everything we built gets ruined." },
+          { sender: 'me', text: "The truth has to come out, Ohyul." },
+          { type: 'choice', options: [
+            { text: "Turn over the encrypted drives", branch: 'submit', reply: "I'm sending them in. I'm sorry.",
+              then: [{ sender: 'Ohyul', text: "...Then I guess this is goodbye." }] },
+            { text: "Destroy the drives", branch: 'destroy', reply: "I'm destroying them. Tonight.",
+              then: [{ sender: 'Ohyul', text: "Thank you. I won't forget this." }] }
+          ] }
+        ]
+      }
+    ]
+  }
+};
+
+function createMessageSim(mount, cfg) {
+  const T = Object.assign({ typeChar: 45, typingIndicator: 1600, gap: 1000, preType: 500, callDelay: 1200, notifyHold: 4500 }, cfg.timing || {});
+  const rooms = {}, order = [];
+  cfg.rooms.forEach(r => {
+    order.push(r.key);
+    const history = (r.history || []).slice();
+    rooms[r.key] = Object.assign({}, r, { history, base: history.length, script: (r.script || []).slice(), pointer: 0, unread: !!r.unread, opened: false });
+  });
+
+  let cur = null, pending = "", ready = false, timers = [], choiceItem = null, call = null, callSecs = 0, callInt = null;
+  const isImg = a => /^https?:/.test(a || '');
+  const av = a => isImg(a) ? `<img src="${a}" alt="" onerror="this.remove()">` : (a || '');
+  const keyRow = (s, extra = '') => `<div class="keyboard-row">${extra}${[...s].map(k => `<div class="key" data-key="${k}">${k}</div>`).join('')}</div>`;
+  const bars = `<rect x="0" y="8" width="3" height="3" rx="0.5"/><rect x="4.5" y="5.5" width="3" height="5.5" rx="0.5"/><rect x="9" y="3" width="3" height="8" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/>`;
+
+  mount.innerHTML = `
+    <div class="status-bar"><span class="status-time">${cfg.time || '01:22'}</span>
+      <div class="status-icons">
+        <svg class="status-icon-svg" width="15" height="10" viewBox="0 0 17 11">${bars}</svg>
+        <svg class="status-icon-svg" width="20" height="10" viewBox="0 0 22 11"><rect x="0.5" y="0.5" width="18" height="10" rx="3" fill="none" stroke="#fff" stroke-width="1"/><rect x="2" y="2" width="12" height="7" rx="1.5" fill="#fff"/></svg>
+      </div></div>
+    <div class="notification-banner" data-el="notif">
+      <div class="notif-avatar" data-el="notifAvatar"></div>
+      <div class="notif-content"><div class="notif-header"><span class="notif-title" data-el="notifTitle"></span><span class="notif-time">now</span></div>
+        <div class="notif-text" data-el="notifText"></div></div></div>
+    <div class="views-wrapper">
+      <div class="screen-view smooth-transition sim-inbox">
+        <div class="inbox-header"><div class="inbox-top-bar"><button class="inbox-edit-btn">Edit</button></div>
+          <div class="inbox-title">Messages</div><div class="inbox-search-bar">Search</div></div>
+        <div class="inbox-list" data-el="list"></div></div>
+      <div class="screen-view smooth-transition sim-chat" data-el="chat">
+        <div class="header-bar">
+          <div class="header-left"><button class="back-btn" data-el="back">‹ Messages</button></div>
+          <div class="header-center"><div class="avatar" data-el="avatar"></div><div class="contact-name" data-el="title"></div></div>
+          <div class="header-right"></div></div>
+        <div class="chat-container" data-el="box"></div>
+        <div class="chat-bar" data-el="bar"><button class="add-btn">+</button>
+          <div class="input-wrapper"><div class="input-display" data-el="input"><span class="placeholder">iMessage</span></div>
+            <button class="send-btn" data-el="send">↑</button></div></div>
+        <div class="keyboard-container">
+          ${keyRow('QWERTYUIOP')}${keyRow('ASDFGHJKL')}
+          <div class="keyboard-row"><div class="key special" data-key="SHIFT">⇧</div>${[...'ZXCVBNM'].map(k => `<div class="key" data-key="${k}">${k}</div>`).join('')}<div class="key special" data-key="BACKSPACE">⌫</div></div>
+          <div class="keyboard-row"><div class="key special" data-key="123">123</div><div class="key space" data-key=" ">space</div><div class="key return" data-key="RETURN">return</div></div>
+        </div></div>
+    </div>
+    <div class="call-screen" data-el="call">
+      <div class="call-top-info"><div class="call-avatar" data-el="callAvatar"></div>
+        <div class="call-caller-name" data-el="callName"></div><div class="call-status" data-el="callStatus">incoming call...</div>
+        <div data-el="callTimer" style="font-size:13px;color:#30d158;display:none;margin-top:4px;">00:00</div></div>
+      <div class="in-call-controls" data-el="callCtl"><div class="audio-progress-bar"><div class="audio-progress-fill" data-el="callFill"></div></div>
+        <div class="call-grid-menu">
+          <div class="call-grid-item"><div class="call-grid-circle">🎙</div><span class="call-grid-label">mute</span></div>
+          <div class="call-grid-item"><div class="call-grid-circle">⌨</div><span class="call-grid-label">keypad</span></div>
+          <div class="call-grid-item"><div class="call-grid-circle">🔊</div><span class="call-grid-label">audio</span></div>
+          <div class="call-grid-item"><div class="call-grid-circle">+</div><span class="call-grid-label">add</span></div>
+          <div class="call-grid-item"><div class="call-grid-circle">📹</div><span class="call-grid-label">FaceTime</span></div>
+          <div class="call-grid-item"><div class="call-grid-circle">👤</div><span class="call-grid-label">contacts</span></div></div></div>
+      <div class="call-actions-container" data-el="callIn">
+        <div class="call-btn-wrapper"><button class="call-btn decline-btn" data-el="decline">✕</button><span class="call-btn-label">Decline</span></div>
+        <div class="call-btn-wrapper"><button class="call-btn accept-btn" data-el="accept">✓</button><span class="call-btn-label">Accept</span></div></div>
+      <div class="call-actions-container" data-el="callAct" style="display:none;">
+        <div class="call-btn-wrapper"><button class="call-btn decline-btn" data-el="end">✕</button><span class="call-btn-label">End Call</span></div></div>
+    </div>
+        <div class="card-overlay" data-el="card">
+      <div class="card-big" data-el="cardBig"></div>
+      <div class="card-sub" data-el="cardSub"></div>
+    </div>
+    <audio data-el="audio" style="display:none;"></audio>
+    <div class="ios-overlay hidden" data-el="overlay"></div>
+    <div class="ios-action-sheet hidden" data-el="sheet">
+      <div class="ios-sheet-group"><div class="ios-sheet-header"><span class="ios-sheet-title">Choose your response</span></div><div data-el="options"></div></div>
+      <div class="ios-sheet-group"><button class="ios-sheet-btn cancel-btn" data-el="cancel">Review Messages</button></div></div>`;
+
+  const $ = n => mount.querySelector(`[data-el="${n}"]`);
+  const box = $('box'), input = $('input'), sendBtn = $('send'), audio = $('audio');
+  const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
+  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; const t = box.querySelector('.typing-bubble'); if (t) t.remove(); };
+  const allRead = () => order.every(k => !rooms[k].unread);
+  const scroll = () => { box.scrollTop = box.scrollHeight; };
+  const resetInput = () => { input.innerHTML = '<span class="placeholder">iMessage</span>'; sendBtn.classList.remove('ready'); ready = false; pending = ""; };
+
+  function stamp(t) { const d = document.createElement('div'); d.className = 'timestamp'; d.textContent = t; box.appendChild(d); }
+    function msg(text, type, sender, image) {
+    const m = document.createElement('div');
+    m.className = `message ${type}` + (image ? ' has-img' : '');
+    if (sender) {
+      const tag = document.createElement('div');
+      tag.className = 'sender-tag';
+      tag.style.color = colorFor(sender);
+      tag.textContent = sender;
+      m.appendChild(tag);
+    }
+    if (image) {
+      const im = document.createElement('img');
+      im.className = 'msg-img';
+      im.src = image;
+      im.onload = scroll;
+      m.appendChild(im);
+    }
+    if (text) m.appendChild(document.createTextNode(text));
+    box.appendChild(m); scroll();
+  }
+  const tagOf = s => (s === 'me' || s === 'other') ? null : s;
+
+  function renderInbox() {
+    $('list').innerHTML = order.filter(k => !rooms[k].hidden).map(k => {
+      const r = rooms[k];
+      return `<div class="inbox-item" data-room="${k}"><div class="unread-indicator-slot">${r.unread ? '<div class="unread-badge"></div>' : ''}</div>
+        <div class="inbox-avatar ${r.isGroup ? 'inbox-group-avatar' : ''}">${av(r.avatar)}</div>
+        <div class="inbox-item-content"><div class="inbox-item-top"><span class="inbox-item-name"></span><span class="inbox-item-time">${r.time || ''}</span></div>
+        <div class="inbox-item-snippet ${r.unread ? 'unread' : ''}"></div></div></div>`;
+    }).join('');
+    $('list').querySelectorAll('.inbox-item').forEach(el => {
+      const r = rooms[el.dataset.room], h = r.history[r.history.length - 1];
+      el.querySelector('.inbox-item-name').textContent = r.title;
+      el.querySelector('.inbox-item-snippet').textContent = h ? ((r.isGroup && tagOf(h.sender) ? h.sender + ': ' : '') + h.text) : (r.snippet || '');
+      el.onclick = () => openChat(el.dataset.room);
+    });
+  }
+
+  function openChat(key) {
+    clearTimers(); hideSheet(); cur = key; const r = rooms[key]; r.unread = false; renderInbox();
+    $('title').textContent = r.title; $('avatar').innerHTML = av(r.avatar);
+    box.innerHTML = '';
+    r.history.forEach((h, i) => {
+      if (i === 0 && r.base > 0) stamp(r.historyStamp || 'Yesterday 10:45 PM');
+      if (i === r.base) stamp(r.todayStamp || cfg.todayStamp || `iMessage · Today ${r.time || ''}`);
+      msg(h.text, h.sender === 'me' ? 'sent' : 'received', tagOf(h.sender), h.image);
+    });
+    if (r.history.length <= r.base) stamp(r.todayStamp || cfg.todayStamp || `iMessage · Today ${r.time || ''}`);
+    resetInput();
+    $('chat').classList.add('active');
+    if (r.onFirstOpen && !r.opened) { const n = r.onFirstOpen; setTimeout(() => notify(n), n.delay || 3500); }
+    r.opened = true;
+    next();
+  }
+  function closeChat() { clearTimers(); hideSheet(); resetInput(); $('chat').classList.remove('active'); cur = null; renderInbox(); }
+
+  function next() {
+    const r = rooms[cur]; if (!r) return; const it = r.script[r.pointer]; if (!it) return;
+    if (it.type === 'choice') { if (it.requireAllRead && !allRead()) return; choiceItem = it; renderChoices(it); showSheet(); return; }
+    if (it.type === 'call') { later(() => showCall(it), it.delay ?? T.callDelay); return; }
+        if (it.type === 'card') { later(() => showCard(it, r), it.delay ?? 1500); return; }
+    if (it.type === 'notify') { later(() => { notify(it); r.pointer++; next(); }, it.delay ?? 0); return; }
+    if (it.sender === 'me') {
+      later(() => { pending = it.text; typeIn(it.text, () => { ready = true; sendBtn.classList.add('ready'); }); }, it.delay ?? T.preType);
+    } else {
+      later(() => typingBubble(it.typing ?? T.typingIndicator, () => {
+        playNotificationChime(); msg(it.text, 'received', tagOf(it.sender), it.image);
+        r.history.push({ sender: it.sender || 'other', text: it.text, image: it.image }); r.pointer++; later(next, it.gap ?? T.gap);
+      }), it.delay ?? 0);
+    }
+  }
+
+  function typingBubble(ms, cb) {
+    const b = document.createElement('div'); b.className = 'typing-bubble';
+    b.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>'; box.appendChild(b); scroll();
+    later(() => { b.remove(); cb(); }, ms);
+  }
+  function typeIn(text, cb) {
+    input.innerHTML = ''; let i = 0;
+    (function step() {
+      if (i < text.length) {
+        i++; input.textContent = text.substring(0, i); pressKey(text.charAt(i - 1)); playKeySound(); later(step, T.typeChar);
+      } else if (cb) cb();
+    })();
+  }
+  function pressKey(ch) {
+    const el = mount.querySelector(`.key[data-key="${CSS.escape(ch.toUpperCase())}"]`);
+    if (el) { el.classList.add('active-press'); setTimeout(() => el.classList.remove('active-press'), 100); }
+  }
+  function sendNow(text) {
+    const r = rooms[cur]; msg(text, 'sent'); r.history.push({ sender: 'me', text });
+  }
+  sendBtn.onclick = e => {
+    e.stopPropagation(); if (!ready) return;
+    const r = rooms[cur]; sendNow(pending); r.pointer++; resetInput(); later(next, T.gap);
+  };
+
+    function notify(n) {
+    const t = rooms[n.room]; if (!t) return;
+    t.hidden = false; 
+    if (n.then) t.script.splice(t.pointer, 0, ...n.then);
+    t.history.push({ sender: n.sender || 'other', text: n.text, image: n.image });
+    if (cur === n.room) msg(n.text, 'received', tagOf(n.sender), n.image); else t.unread = true;
+    const b = $('notif'); b.dataset.room = n.room;
+    $('notifAvatar').innerHTML = av(t.avatar); $('notifTitle').textContent = t.title;
+    $('notifText').textContent = (tagOf(n.sender) ? n.sender + ': ' : '') + (n.text || '📷 Photo');
+    playNotificationChime(); b.classList.add('active'); renderInbox();
+    setTimeout(() => b.classList.remove('active'), T.notifyHold);
+  }
+  
+  $('notif').onclick = () => { $('notif').classList.remove('active'); openChat($('notif').dataset.room); };
+
+    function showCard(it, r) {
+    $('cardBig').textContent = it.text || '';
+    $('cardSub').textContent = it.sub || '';
+    $('card').classList.add('active');
+    let finished = false;
+    const done = () => {
+      if (finished) return;
+      finished = true;
+      $('card').classList.remove('active');
+      $('card').onclick = null;
+      r.pointer++;
+      later(next, T.gap);
+    };
+    $('card').onclick = done;
+    if (it.hold) later(done, it.hold);
+  }
+  
+  function showSheet() { $('sheet').classList.remove('hidden'); $('overlay').classList.remove('hidden'); }
+  function hideSheet() { $('sheet').classList.add('hidden'); $('overlay').classList.add('hidden'); }
+  function renderChoices(it) {
+    const c = $('options'); c.innerHTML = '';
+    it.options.forEach(o => { const b = document.createElement('button'); b.className = 'ios-sheet-btn'; b.textContent = o.text; b.onclick = () => choose(o); c.appendChild(b); });
+  }
+  function choose(o) {
+    hideSheet(); choiceItem = null; const r = rooms[cur];
+    if (cfg.onChoice && o.branch) cfg.onChoice(o.branch, o);
+    r.pointer++;
+    if (o.reply) sendNow(o.reply);
+    if (o.then) r.script.splice(r.pointer, 0, ...o.then);
+    later(next, T.gap);
+  }
+  $('bar').onclick = () => { if (choiceItem) { $('sheet').classList.toggle('hidden'); $('overlay').classList.toggle('hidden'); } };
+  $('overlay').onclick = () => { if (choiceItem) hideSheet(); };
+  $('cancel').onclick = hideSheet;
+  $('back').onclick = closeChat;
+
+    let ringInt = null;
+  function ringBurst() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    [0, 0.25, 0.5, 0.75].forEach(off => {
+      [440, 480].forEach(freq => {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.0001, now + off);
+        g.gain.exponentialRampToValueAtTime(0.08, now + off + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + off + 0.2);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(now + off); o.stop(now + off + 0.22);
+      });
+    });
+  }
+  function startRing() { stopRing(); ringBurst(); ringInt = setInterval(ringBurst, 2500); }
+  function stopRing() { clearInterval(ringInt); ringInt = null; }
+
+  function showCall(it) {
+    call = it; const r = rooms[cur];
+    $('callAvatar').innerHTML = av(it.avatar || r.avatar); $('callName').textContent = it.name || r.title;
+    $('callStatus').textContent = 'incoming call...'; $('callTimer').style.display = 'none';
+    $('callIn').style.display = 'flex'; $('callAct').style.display = 'none'; $('callCtl').classList.remove('active');
+        $('callFill').style.width = '0%'; $('call').classList.add('active');
+    startRing();
+  }
+  function finishCall(label, items, branch) {
+    stopRing();
+    const r = rooms[cur]; $('call').classList.remove('active'); r.pointer++;
+    msg(label, 'received'); r.history.push({ sender: 'other', text: label });
+    if (branch && cfg.onChoice) cfg.onChoice(branch);
+    if (items) r.script.splice(r.pointer, 0, ...items);
+    later(next, T.gap);
+  }
+  $('decline').onclick = () => finishCall('Call Declined', call.onDecline, call.declineBranch);
+    $('accept').onclick = () => {
+    stopRing();
+    $('callStatus').textContent = '00:00'; $('callTimer').style.display = 'block'; $('callTimer').textContent = '00:00';
+    $('callIn').style.display = 'none'; $('callAct').style.display = 'flex'; $('callCtl').classList.add('active');
+    callSecs = 0; clearInterval(callInt);
+    callInt = setInterval(() => {
+      callSecs++; $('callTimer').textContent = String(Math.floor(callSecs / 60)).padStart(2, '0') + ':' + String(callSecs % 60).padStart(2, '0');
+      if (!call.audio && call.duration) { $('callFill').style.width = Math.min(100, callSecs / call.duration * 100) + '%'; if (callSecs >= call.duration) endCall(); }
+    }, 1000);
+    if (call.audio) {
+      audio.src = call.audio; audio.play().catch(() => {});
+      audio.ontimeupdate = () => { if (audio.duration) $('callFill').style.width = (audio.currentTime / audio.duration * 100) + '%'; };
+      audio.onended = endCall;
+    }
+  };
+  function endCall() {
+    clearInterval(callInt); audio.pause(); audio.currentTime = 0;
+    finishCall('Call Ended · ' + $('callTimer').textContent, call.onAccept, call.acceptBranch);
+  }
+  $('end').onclick = endCall;
+
+  renderInbox();
+}
+
+document.querySelectorAll('.sim-mount').forEach(m => {
+  const cfg = CHAPTER_SIM_DATA[m.dataset.sim];
+  if (cfg) createMessageSim(m, cfg);
+});
+</script>
+  <script>
+/* DEV: remember current page across reloads (live preview) */
+(function () {
+  const KEY = 'lngshot_current_page';
+  const save = v => { try { localStorage.setItem(KEY, String(v)); } catch (e) {} };
+
+  // Wrap navigation functions so they record where you are
+  const _open1 = openChapter1;
+  window.openChapter1 = function () { save(1); return _open1.apply(this, arguments); };
+
+  const _back = goBackToMainLanding;
+  window.goBackToMainLanding = function () { save('home'); return _back.apply(this, arguments); };
+
+  const _next = slideLeftToNextChapter;
+  window.slideLeftToNextChapter = function (cur, nxt) { save(nxt); return _next.apply(this, arguments); };
+
+  const _nav = navigateToChapter;
+  window.navigateToChapter = function (n) {
+    const r = _nav.apply(this, arguments);
+    const cp = document.getElementById('cp-' + n);
+    if (n === 1 || (cp && !cp.classList.contains('locked'))) save(n);
+    return r;
+  };
+
+  // Restore on load (URL ?ch=1 overrides saved value)
+  let target = '2';
+  if (target === null) { try { target = localStorage.getItem(KEY); } catch (e) {} }
+  const n = parseInt(target, 10);
+
+  if (n >= 1 && n <= 6) {
+    const pages = document.querySelectorAll('.page-section');
+    pages.forEach(p => p.style.transition = 'none');          // no slide animation on restore
+    document.getElementById('landing-page').classList.add('hidden-page');
+    for (let i = 1; i < n; i++) document.getElementById('chapter-' + i)?.classList.add('slide-left-out');
+    document.getElementById('chapter-' + n)?.classList.add('active-page');
+    for (let i = 2; i <= n; i++) unlockCheckpoint(i);         // keep sidebar unlocked up to this chapter
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+      pages.forEach(p => p.style.transition = '')));
+  }
+})();
+</script>
+</body>
+</html>
